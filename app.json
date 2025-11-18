@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "Fitium",
+    "scheme": "fitium",
     "slug": "Fitium",
     "version": "1.0.0",
     "orientation": "portrait",

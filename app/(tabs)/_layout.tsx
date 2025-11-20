@@ -1,21 +1,34 @@
-import { View, Text } from 'react-native'
+import { View, Text, ImageBackground } from 'react-native'
 import React from 'react'
 import { Tabs } from 'expo-router'
+import { icons } from '../../constants/icons'
 
 const _layout = () => {
   return (
     <Tabs>
         <Tabs.Screen
-            name='index'
+            name='workouts'
             options={{
-                title: 'Dashboard',
-                headerShown: false
+                title: 'Workouts',
+                headerShown: false,
+                tabBarIcon: ({ focused }) => (
+                    <>
+                    
+                    </>
+                )
             }}
         />
         <Tabs.Screen
             name='activities'
             options={{
                 title: 'Activities',
+                headerShown: false
+            }}
+        />
+        <Tabs.Screen
+            name='index'
+            options={{
+                title: 'Dashboard',
                 headerShown: false
             }}
         />
@@ -30,13 +43,6 @@ const _layout = () => {
             name='supplements'
             options={{
                 title: 'Supplements',
-                headerShown: false
-            }}
-        />
-        <Tabs.Screen
-            name='workouts'
-            options={{
-                title: 'Workouts',
                 headerShown: false
             }}
         />

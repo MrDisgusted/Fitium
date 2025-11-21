@@ -1,53 +1,43 @@
-import { View, Text, ImageBackground } from 'react-native'
-import React from 'react'
-import { Tabs } from 'expo-router'
-import { icons } from '../../constants/icons'
+import { Tabs } from "expo-router";
+import GlassBar from "../../components/GlassBar";
+import { icons } from "../../constants/icons";
 
-const _layout = () => {
+export default function _layout() {
   return (
-    <Tabs>
-        <Tabs.Screen
-            name='workouts'
-            options={{
-                title: 'Workouts',
-                headerShown: false,
-                tabBarIcon: ({ focused }) => (
-                    <>
-                    
-                    </>
-                )
-            }}
-        />
-        <Tabs.Screen
-            name='activities'
-            options={{
-                title: 'Activities',
-                headerShown: false
-            }}
-        />
-        <Tabs.Screen
-            name='index'
-            options={{
-                title: 'Dashboard',
-                headerShown: false
-            }}
-        />
-        <Tabs.Screen
-            name='diet'
-            options={{
-                title: 'Diet',
-                headerShown: false
-            }}
-        />
-        <Tabs.Screen
-            name='supplements'
-            options={{
-                title: 'Supplements',
-                headerShown: false
-            }}
-        />
+    <Tabs
+      tabBar={(props) => <GlassBar {...props} />}
+      screenOptions={{ tabBarShowLabel: false, headerShown: false }}
+    >
+      <Tabs.Screen
+        name="workouts"
+        options={{
+          tabBarIcon: () => icons.weights,
+        }}
+      />
+      <Tabs.Screen
+        name="activities"
+        options={{
+          tabBarIcon: () => icons.run,
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          tabBarIcon: () => icons.menu,
+        }}
+      />
+      <Tabs.Screen
+        name="diet"
+        options={{
+          tabBarIcon: () => icons.food,
+        }}
+      />
+      <Tabs.Screen
+        name="supplements"
+        options={{
+          tabBarIcon: () => icons.pills,
+        }}
+      />
     </Tabs>
-  )
+  );
 }
-
-export default _layout

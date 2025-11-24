@@ -1,43 +1,32 @@
 import { Tabs } from "expo-router";
 import GlassBar from "../../components/GlassBar";
 import { icons } from "../../constants/icons";
+import { ImageBackground } from "react-native";
 
-export default function _layout() {
+export default function TabsLayout() {
   return (
-    <Tabs
-      tabBar={(props) => <GlassBar {...props} />}
-      screenOptions={{ tabBarShowLabel: false, headerShown: false }}
+    <ImageBackground
+      source={require("../../assets/wallpaper.png")}
+      style={{ flex: 1 }}
+      resizeMode="cover"
     >
-      <Tabs.Screen
-        name="workouts"
-        options={{
-          tabBarIcon: () => icons.weights,
+      <Tabs
+        tabBar={(props) => <GlassBar {...props} />}
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: "transparent",
+            position: "absolute",
+            borderTopWidth: 0,
+          },
         }}
-      />
-      <Tabs.Screen
-        name="activities"
-        options={{
-          tabBarIcon: () => icons.run,
-        }}
-      />
-      <Tabs.Screen
-        name="index"
-        options={{
-          tabBarIcon: () => icons.menu,
-        }}
-      />
-      <Tabs.Screen
-        name="diet"
-        options={{
-          tabBarIcon: () => icons.food,
-        }}
-      />
-      <Tabs.Screen
-        name="supplements"
-        options={{
-          tabBarIcon: () => icons.pills,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen name="workouts" options={{ tabBarIcon: () => icons.weights }} />
+        <Tabs.Screen name="activities" options={{ tabBarIcon: () => icons.run }} />
+        <Tabs.Screen name="index" options={{ tabBarIcon: () => icons.menu }} />
+        <Tabs.Screen name="diet" options={{ tabBarIcon: () => icons.food }} />
+        <Tabs.Screen name="supplements" options={{ tabBarIcon: () => icons.pills }} />
+      </Tabs>
+    </ImageBackground>
   );
 }

@@ -26,7 +26,7 @@ export default function GlassBar({ state, descriptors, navigation }) {
                   source={iconSource}
                   style={[
                     styles.icon,
-                    { tintColor: isFocused ? "#5c3cff" : "#bbb" }
+                    { tintColor: isFocused ? "#ffffff" : "#999" }
                   ]}
                 />
               </View>
@@ -40,11 +40,13 @@ export default function GlassBar({ state, descriptors, navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 15,
-    marginHorizontal: 10,
+    marginBottom: 20,
+    marginHorizontal: 20,
     borderRadius: 40,
-    paddingVertical: 6,
+    paddingVertical: 0,
     paddingHorizontal: 10,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.3)",
   },
 
   row: {
@@ -69,13 +71,17 @@ const styles = StyleSheet.create({
 
   iconFocused: {
     backgroundColor: "rgba(255,255,255,0.2)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.4)",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.2)",
     borderRadius: 33,
+    paddingLeft: 39,
+    paddingRight: 39,
+    padding: 23,
+    margin: -10,
   },
 
   icon: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
   },
 });

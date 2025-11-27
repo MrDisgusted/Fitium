@@ -9,7 +9,8 @@ export const dailyCaloriesCalculation = (data) => {
 
     const calc = bmr * data.activity;
     return Math.round(calc);
-}; 
+};
 
-//takes in these values btw:
-// Weight, Height, Age, Gender, Male, Activity
+export const caloriesFromMacros = ({ carbs, protein, fats }) => {
+  return carbs * 4 + protein * 4 + fats * 9;
+};

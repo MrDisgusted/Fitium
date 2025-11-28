@@ -1,12 +1,15 @@
 import { Stack } from "expo-router";
-import './global.css';
+import "./global.css";
 
 export default function RootLayout() {
-    return <Stack>
-        //anytime you add a new folder make sure to put copy paste stack screen and put the name and hide its header in there
-        <Stack.Screen
-            name="(tabs)"
-            options={{headerShown: false}}
-        />
-    </Stack>;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+    //anytime you add a new folder make sure to put copy paste
+      <Stack.Screen name="(tabs)" />
+    </Stack>
+  );
 }

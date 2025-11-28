@@ -11,7 +11,7 @@ type GlassProps = {
 export default function Glass({ children, style, className }: GlassProps) {
   return (
     <View style={[styles.container, style]} className={className}>
-      <BlurView intensity={40} style={StyleSheet.absoluteFill} />
+      <BlurView intensity={25} style={StyleSheet.absoluteFill} />
       <View style={styles.content}>{children}</View>
     </View>
   );
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.05)",
     borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.3)",
+    borderColor: "rgba(255,255,255,0.25)",
   },
   content: {
     paddingVertical: 12,

@@ -1,16 +1,17 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ImageBackground, View } from "react-native";
+import { ImageBackground, View, TouchableOpacity, Image } from "react-native";
 import Glass from "../../components/Glass";
 import Calendar from "../../components/Calendar";
 import MacroBar from "../../components/MacroBar";
 import DailyCalories from "../../components/DailyCalories";
 import { useState } from "react";
+import { Link } from "expo-router";
 import { dailyCaloriesCalculation, caloriesFromMacros } from "../../controller/fitness";
-
 
 export default function Index() {
 
-  //all of this is a temporary placeholder for when i actually implement the user profile and shit
+  //i will change this, these are just temporary values i swear
+
   const [macros, setMacros] = useState({
     carbs: 5,
     protein: 18,
@@ -34,6 +35,7 @@ export default function Index() {
   };
 
   const calorieGoal = dailyCaloriesCalculation(userData);
+
   return (
     <ImageBackground
       source={require("../../assets/wallpaper.png")}
@@ -49,22 +51,35 @@ export default function Index() {
             paddingTop: 10,
           }}
         >
-          <Glass style={{ padding: 10, borderRadius: 30 }}>
-            <Calendar bubbleSize={50} dimOpacity={1} />
+          <View style={{ alignItems: "flex-end", marginBottom: 10 }}>
+            <Link href="/profile" asChild>
+              <TouchableOpacity>
+                <Image
+                  source={require("../../assets/profile.png")}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 99,
+                  }}
+                />
+              </TouchableOpacity>
+            </Link>
+          </View>
+
+          <Glass style={{ padding: 10, borderRadius: 30, marginBottom: 20, marginTop: 10 }}>
+            <Calendar bubbleSize={41} dimOpacity={1} />
           </Glass>
 
           <Glass style={{ padding: 10, borderRadius: 30 }}>
             <View style={{ marginTop: 20 }}>
-              <MacroBar label="Carbs" value={macros.carbs} goal={macroGoals.carbs} color="#60ffd0"/>
+              <MacroBar label="Carbs" value={macros.carbs} goal={macroGoals.carbs} color="#60ffd0" />
               <MacroBar label="Protein" value={macros.protein} goal={macroGoals.protein} color="#2483ff" />
-              <MacroBar label="Fats" value={macros.fats} goal={macroGoals.fats} color="#24b2ff"/>
+              <MacroBar label="Fats" value={macros.fats} goal={macroGoals.fats} color="#24b2ff" />
             </View>
+              <Glass style={{ padding: 8, borderRadius: 25, marginBottom: -7, marginTop: 15 }}>
+                <DailyCalories calories={consumedCalories} />
+              </Glass>
           </Glass>
-
-          <Glass style={{ padding: 10, borderRadius: 30 }}>
-            <DailyCalories calories={consumedCalories} />
-          </Glass>
-
         </View>
       </SafeAreaView>
     </ImageBackground>

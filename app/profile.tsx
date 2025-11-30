@@ -37,88 +37,88 @@ export default function Profile() {
         resizeMode="cover"
     >
         <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
-        >
-            <Text
-            style={{
-                color: "white",
-                fontSize: 32,
-                fontWeight: "bold",
-                marginBottom: 20,
-            }}
-            >
-            Profile
-            </Text>
-            <ProfileInputGlass
-            label="Age"
-            value={profile.age}
-            placeholder="Enter age"
-            onChange={(v) => updateField("age", v)}
-            />
+          <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
+          >
+              <Text
+              style={{
+                  color: "white",
+                  fontSize: 32,
+                  fontWeight: "bold",
+                  marginBottom: 20,
+              }}
+              >
+              Profile
+              </Text>
+              <ProfileInputGlass
+                label="Age"
+                value={profile.age}
+                placeholder="Enter age"
+                onChange={(v) => updateField("age", v)}
+              />
 
-            <ProfileInputGlass
-            label="Gender"
-            value={profile.gender}
-            placeholder="Male / Female"
-            onChange={(v) => updateField("gender", v)}
-            />
+              <ProfileInputGlass
+                label="Gender"
+                value={profile.gender}
+                placeholder="Male / Female"
+                onChange={(v) => updateField("gender", v)}
+              />
 
-            <ProfileInputGlass
-            label="Weight (kg)"
-            value={profile.weight}
-            placeholder="Enter weight"
-            onChange={(v) => updateField("weight", v)}
-            />
+              <ProfileInputGlass
+                label="Weight (kg)"
+                value={profile.weight}
+                placeholder="Enter weight"
+                onChange={(v) => updateField("weight", v)}
+              />
 
-            <ProfileInputGlass
-            label="Height (cm)"
-            value={profile.height}
-            placeholder="Enter height"
-            onChange={(v) => updateField("height", v)}
-            />
+              <ProfileInputGlass
+                label="Height (cm)"
+                value={profile.height}
+                placeholder="Enter height"
+                onChange={(v) => updateField("height", v)}
+              />
 
-            <ProfileInputGlass
-            label="Occupation"
-            value={profile.occupation}
-            placeholder="Your job"
-            onChange={(v) => updateField("occupation", v)}
-            />
+              <ProfileInputGlass
+                label="Occupation"
+                value={profile.occupation}
+                placeholder="Your job"
+                onChange={(v) => updateField("occupation", v)}
+              />
 
-            <ProfileInputGlass
-            label="Illnesses"
-            value={profile.illnesses}
-            placeholder="List illnesses"
-            onChange={(v) => updateField("illnesses", v)}
-            multiline
-            />
+              <ProfileInputGlass
+                label="Illnesses"
+                value={profile.illnesses}
+                placeholder="List illnesses"
+                onChange={(v) => updateField("illnesses", v)}
+                multiline
+              />
 
-            <ProfileInputGlass
-            label="Allergies"
-            value={profile.allergies}
-            placeholder="List allergies"
-            onChange={(v) => updateField("allergies", v)}
-            multiline
-            />
+              <ProfileInputGlass
+                label="Allergies"
+                value={profile.allergies}
+                placeholder="List allergies"
+                onChange={(v) => updateField("allergies", v)}
+                multiline
+              />
 
-            <TouchableOpacity
-            onPress={saveProfile}
-            style={{
-                marginTop: 20,
-                backgroundColor: "rgba(255,255,255,0.2)",
-                padding: 15,
-                borderRadius: 15,
-                alignItems: "center",
-                borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.3)",
-            }}
-            >
-            <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
-                Save Profile
-            </Text>
-            </TouchableOpacity>
-        </ScrollView>
+              <TouchableOpacity
+              onPress={saveProfile}
+              style={{
+                  marginTop: 20,
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  padding: 15,
+                  borderRadius: 15,
+                  alignItems: "center",
+                  borderWidth: 1,
+                  borderColor: "rgba(255,255,255,0.3)",
+              }}
+              >
+                <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
+                    Save Profile
+                </Text>
+              </TouchableOpacity>
+          </ScrollView>
         </SafeAreaView>
     </ImageBackground>
   );

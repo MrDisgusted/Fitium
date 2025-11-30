@@ -1,25 +1,30 @@
-import React, { useState } from "react";
-import { View, Text, ImageBackground } from "react-native";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
 import Glass from "../../components/Glass";
-import { caloriesFromMacros, dailyCaloriesCalculation } from "../../controller/fitness";
+import MacroBar from "../../components/MacroBar";
+import DailyCalories from "../../components/DailyCalories";
+import { dailyCaloriesCalculation, caloriesFromMacros } from "../../controller/fitness";
+import EditNumberModal from "../../components/EditNumberModal";
 
 export default function Diet() {
-
-  //again this is all temporary and will be changed wallah ill remove this but for now ill see the values displayed
   const [macros, setMacros] = useState({
-    carbs: 0,
-    protein: 0,
-    fats: 0,
+    carbs: 160,
+    protein: 55,
+    fats: 40,
   });
 
   const [macroGoals, setMacroGoals] = useState({
-    carbs: 0,
-    protein: 0,
-    fats: 0,
+    carbs: 200,
+    protein: 90,
+    fats: 70,
   });
 
-  const consumedCalories = caloriesFromMacros(macros);
+  const [calories, setCalories] = useState(caloriesFromMacros(macros));
+
+  useEffect(() => {
+    setCalories(caloriesFromMacros(macros));
+  }, [macros]);
 
   const userData = {
     weight: 70,
@@ -30,74 +35,93 @@ export default function Diet() {
   };
 
   const calorieGoal = dailyCaloriesCalculation(userData);
-  const caloriePercent = Math.min(consumedCalories / calorieGoal, 1);
+
+  const [editField, setEditField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState(0);
+
+  const openEdit = (field: string, value: number) => {
+    setEditField(field);
+    setEditValue(value);
+  };
+
+  const saveEdit = (newVal: number) => {
+    if (editField === "calories") {
+      setCalories(newVal);
+    } else if (editField && editField in macros) {
+      setMacros({ ...macros, [editField]: newVal });
+    }
+    setEditField(null);
+  };
 
   return (
     <ImageBackground
-          source={require("../../assets/wallpaper.png")}
-          style={{ flex: 1 }}
-          resizeMode="cover"
+      source={require("../../assets/wallpaper.png")}
+      style={{ flex: 1 }}
+      resizeMode="cover"
     >
       <SafeAreaView style={{ flex: 1 }}>
         <View style={{ flex: 1, padding: 20, gap: 20 }}>
-          
-          <Glass style={{ padding: 20 }}>
-            <Text style={{ color: "white", fontSize: 22, fontWeight: "bold" }}>
-              Calories
-            </Text>
+          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold", marginBottom: 10 }}>
+            Diet
+          </Text>
 
-            <Text style={{ color: "white", fontSize: 30, fontWeight: "900", marginTop: 10 }}>
-              {consumedCalories} / {calorieGoal} kcal
-            </Text>
-
-            <View
-              style={{
-                height: 12,
-                backgroundColor: "rgba(255,255,255,0.2)",
-                borderRadius: 20,
-                marginTop: 12,
-                overflow: "hidden",
-              }}
-            >
-              <View
-                style={{
-                  height: "100%",
-                  width: `${caloriePercent * 100}%`,
-                  backgroundColor: "white",
-                }}
-              />
-            </View>
-          </Glass>
+          <TouchableOpacity onPress={() => openEdit("calories", calories)}>
+            <Glass style={{ padding: 20, borderRadius: 25 }}>
+              <DailyCalories calories={calories} goal={calorieGoal} />
+            </Glass>
+          </TouchableOpacity>
 
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Glass style={{ padding: 15, width: "32%" }}>
-              <Text style={{ color: "white", fontWeight: "600", fontSize: 16 }}>
-                Protein
-              </Text>
-              <Text style={{ color: "white", marginTop: 6 }}>
-                {macros.protein} / {macroGoals.protein} g
-              </Text>
-            </Glass>
+            <TouchableOpacity
+              style={{ width: "32%" }}
+              onPress={() => openEdit("carbs", macros.carbs)}
+            >
+              <Glass style={{ padding: 15 }}>
+                <MacroBar
+                  label="Carbs"
+                  value={macros.carbs}
+                  goal={macroGoals.carbs}
+                  color="#60ffd0"
+                />
+              </Glass>
+            </TouchableOpacity>
 
-            <Glass style={{ padding: 15, width: "32%" }}>
-              <Text style={{ color: "white", fontWeight: "600", fontSize: 16 }}>
-                Carbs
-              </Text>
-              <Text style={{ color: "white", marginTop: 6 }}>
-                {macros.carbs} / {macroGoals.carbs} g
-              </Text>
-            </Glass>
+            <TouchableOpacity
+              style={{ width: "32%" }}
+              onPress={() => openEdit("protein", macros.protein)}
+            >
+              <Glass style={{ padding: 15 }}>
+                <MacroBar
+                  label="Protein"
+                  value={macros.protein}
+                  goal={macroGoals.protein}
+                  color="#2483ff"
+                />
+              </Glass>
+            </TouchableOpacity>
 
-            <Glass style={{ padding: 15, width: "32%" }}>
-              <Text style={{ color: "white", fontWeight: "600", fontSize: 16 }}>
-                Fats
-              </Text>
-              <Text style={{ color: "white", marginTop: 6 }}>
-                {macros.fats} / {macroGoals.fats} g
-              </Text>
-            </Glass>
+            <TouchableOpacity
+              style={{ width: "32%" }}
+              onPress={() => openEdit("fats", macros.fats)}
+            >
+              <Glass style={{ padding: 15 }}>
+                <MacroBar
+                  label="Fats"
+                  value={macros.fats}
+                  goal={macroGoals.fats}
+                  color="#24b2ff"
+                />
+              </Glass>
+            </TouchableOpacity>
           </View>
 
+          <EditNumberModal
+            visible={!!editField}
+            value={editValue}
+            label={editField || ""}
+            onClose={() => setEditField(null)}
+            onSave={saveEdit}
+          />
         </View>
       </SafeAreaView>
     </ImageBackground>

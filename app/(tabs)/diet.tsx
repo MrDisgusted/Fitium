@@ -1,40 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import {View, Text, TouchableOpacity, ImageBackground, StyleSheet} from "react-native";
 import Glass from "../../components/Glass";
 import MacroBar from "../../components/MacroBar";
 import DailyCalories from "../../components/DailyCalories";
-import { dailyCaloriesCalculation, caloriesFromMacros } from "../../controller/fitness";
 import EditNumberModal from "../../components/EditNumberModal";
+import { dailyCaloriesCalculation } from "../../controller/fitness";
+import { useNutrition } from "../../components/provider/NutritionProvider";
 
 export default function Diet() {
-  const [macros, setMacros] = useState({
-    carbs: 160,
-    protein: 55,
-    fats: 40,
-  });
-
-  const [macroGoals, setMacroGoals] = useState({
-    carbs: 200,
-    protein: 90,
-    fats: 70,
-  });
-
-  const [calories, setCalories] = useState(caloriesFromMacros(macros));
-
-  useEffect(() => {
-    setCalories(caloriesFromMacros(macros));
-  }, [macros]);
-
-  const userData = {
-    weight: 70,
-    height: 175,
-    age: 21,
-    gender: "male",
-    activity: 1.55,
-  };
-
-  const calorieGoal = dailyCaloriesCalculation(userData);
+  const {
+    macros,
+    setMacros,
+    calories,
+    setCalories,
+    macroGoals,
+    calorieGoal,
+    userInfo,
+  } = useNutrition();
 
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState(0);
@@ -53,30 +36,35 @@ export default function Diet() {
     setEditField(null);
   };
 
+  const computedCalorieGoal =
+    calorieGoal && calorieGoal > 0
+      ? calorieGoal
+      : dailyCaloriesCalculation(userInfo);
+
   return (
     <ImageBackground
       source={require("../../assets/wallpaper.png")}
-      style={{ flex: 1 }}
+      style={styles.background}
       resizeMode="cover"
     >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1, padding: 20, gap: 20 }}>
-          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold", marginBottom: 10 }}>
-            Diet
-          </Text>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Diet</Text>
 
           <TouchableOpacity onPress={() => openEdit("calories", calories)}>
-            <Glass style={{ padding: 20, borderRadius: 25 }}>
-              <DailyCalories calories={calories} goal={calorieGoal} />
+            <Glass style={styles.calorieCard}>
+              <DailyCalories calories={calories} goal={computedCalorieGoal} />
             </Glass>
           </TouchableOpacity>
 
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Text style={styles.sectionLabel}>Add Macros</Text>
+
+          <View style={styles.macroRow}>
             <TouchableOpacity
-              style={{ width: "32%" }}
+              style={styles.macroWrapper}
               onPress={() => openEdit("carbs", macros.carbs)}
             >
-              <Glass style={{ padding: 15 }}>
+              <Glass style={styles.macroCard}>
                 <MacroBar
                   label="Carbs"
                   value={macros.carbs}
@@ -87,10 +75,10 @@ export default function Diet() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={{ width: "32%" }}
+              style={styles.macroWrapper}
               onPress={() => openEdit("protein", macros.protein)}
             >
-              <Glass style={{ padding: 15 }}>
+              <Glass style={styles.macroCard}>
                 <MacroBar
                   label="Protein"
                   value={macros.protein}
@@ -101,10 +89,10 @@ export default function Diet() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={{ width: "32%" }}
+              style={styles.macroWrapper}
               onPress={() => openEdit("fats", macros.fats)}
             >
-              <Glass style={{ padding: 15 }}>
+              <Glass style={styles.macroCard}>
                 <MacroBar
                   label="Fats"
                   value={macros.fats}
@@ -127,3 +115,44 @@ export default function Diet() {
     </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+    gap: 20,
+  },
+  title: {
+    color: "white",
+    fontSize: 32,
+    fontWeight: "bold",
+  },
+  calorieCard: {
+    padding: 15,
+    borderRadius: 25,
+  },
+  sectionLabel: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: 10,
+  },
+  macroRow: {
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  macroWrapper: {
+    width: "100%",
+  },
+  macroCard: {
+    padding: 5,
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+});

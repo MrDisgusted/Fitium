@@ -1,178 +1,262 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ImageBackground,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ImageBackground } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Glass from "../components/Glass";
+import EditNumberModal from "../components/EditNumberModal";
+import { useNutrition } from "../components/provider/NutritionProvider";
 
 export default function Profile() {
-  const [profile, setProfile] = useState({
-    age: "",
-    gender: "",
-    weight: "",
-    height: "",
-    occupation: "",
-    illnesses: "",
-    allergies: "",
-  });
+  const {
+    macroGoals,
+    setMacroGoals,
+    calorieGoal,
+    setCalorieGoal,
+    userInfo,
+    setUserInfo,
+  } = useNutrition();
 
-  useEffect(() => {
-    (async () => {
-      const saved = await AsyncStorage.getItem("profile");
-      if (saved) setProfile(JSON.parse(saved));
-    })();
-  }, []);
+  const [profile, setProfile] = useState(userInfo);
+  const [editField, setEditField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState(0);
 
-  const updateField = (key: string, value: string) => {
-    setProfile({ ...profile, [key]: value });
+  const openEdit = (field: string, value: number) => {
+    setEditField(field);
+    setEditValue(value);
   };
 
-  const saveProfile = async () => {
-    await AsyncStorage.setItem("profile", JSON.stringify(profile));
+  const saveEdit = (val: number) => {
+    if (editField === "calorieGoal") {
+      setCalorieGoal(val);
+    } else {
+      setMacroGoals({ ...macroGoals, [editField as keyof typeof macroGoals]: val });
+    }
+    setEditField(null);
   };
+
+  const onSaveProfile = () => {
+    setUserInfo({
+      age: Number(profile.age) || 0,
+      gender: profile.gender,
+      weight: Number(profile.weight) || 0,
+      height: Number(profile.height) || 0,
+      activity: Number(profile.activity) || 1.2,
+    });
+  };
+
+  const estimatedGoalCalories =
+    macroGoals.carbs * 4 + macroGoals.protein * 4 + macroGoals.fats * 9;
 
   return (
     <ImageBackground
-        source={require("../assets/wallpaper.png")}
-        style={{ flex: 1 }}
-        resizeMode="cover"
+      source={require("../assets/wallpaper.png")}
+      style={{ flex: 1 }}
+      resizeMode="cover"
     >
-        <SafeAreaView style={{ flex: 1 }}>
-          <ScrollView
-              style={{ flex: 1 }}
-              contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
-          >
-              <Text
-              style={{
-                  color: "white",
-                  fontSize: 32,
-                  fontWeight: "bold",
-                  marginBottom: 20,
-              }}
-              >
-              Profile
-              </Text>
-              <ProfileInputGlass
-                label="Age"
-                value={profile.age}
-                placeholder="Enter age"
-                onChange={(v) => updateField("age", v)}
-              />
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+          <Text style={styles.title}>Profile</Text>
 
-              <ProfileInputGlass
-                label="Gender"
-                value={profile.gender}
-                placeholder="Male / Female"
-                onChange={(v) => updateField("gender", v)}
-              />
+          <Glass style={{ padding: 20, borderRadius: 25 }}>
+            <Text style={styles.header}>Personal Information</Text>
 
-              <ProfileInputGlass
-                label="Weight (kg)"
-                value={profile.weight}
-                placeholder="Enter weight"
-                onChange={(v) => updateField("weight", v)}
-              />
+            <TextInput
+              style={styles.input}
+              placeholder="Age"
+              placeholderTextColor="#aaa"
+              keyboardType="numeric"
+              value={String(profile.age ?? "")}
+              onChangeText={(t) => setProfile({ ...profile, age: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Gender"
+              placeholderTextColor="#aaa"
+              value={profile.gender ?? ""}
+              onChangeText={(t) => setProfile({ ...profile, gender: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Weight (kg)"
+              placeholderTextColor="#aaa"
+              keyboardType="numeric"
+              value={String(profile.weight ?? "")}
+              onChangeText={(t) => setProfile({ ...profile, weight: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Height (cm)"
+              placeholderTextColor="#aaa"
+              keyboardType="numeric"
+              value={String(profile.height ?? "")}
+              onChangeText={(t) => setProfile({ ...profile, height: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Activity (1.2 - 1.9)"
+              placeholderTextColor="#aaa"
+              keyboardType="numeric"
+              value={String(profile.activity ?? "")}
+              onChangeText={(t) => setProfile({ ...profile, activity: t })}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Occupation"
+              placeholderTextColor="#aaa"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Illnesses"
+              placeholderTextColor="#aaa"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Allergies"
+              placeholderTextColor="#aaa"
+            />
 
-              <ProfileInputGlass
-                label="Height (cm)"
-                value={profile.height}
-                placeholder="Enter height"
-                onChange={(v) => updateField("height", v)}
-              />
+            <TouchableOpacity style={styles.saveButton} onPress={onSaveProfile}>
+              <Text style={styles.saveText}>Save Profile</Text>
+            </TouchableOpacity>
+          </Glass>
 
-              <ProfileInputGlass
-                label="Occupation"
-                value={profile.occupation}
-                placeholder="Your job"
-                onChange={(v) => updateField("occupation", v)}
-              />
+          <Glass style={{ padding: 20, borderRadius: 25 }}>
+            <Text style={styles.header}>Nutrition Goals</Text>
 
-              <ProfileInputGlass
-                label="Illnesses"
-                value={profile.illnesses}
-                placeholder="List illnesses"
-                onChange={(v) => updateField("illnesses", v)}
-                multiline
-              />
+            <TouchableOpacity
+              onPress={() => openEdit("carbs", macroGoals.carbs)}
+              style={styles.goalRow}
+            >
+              <Text style={styles.goalLabel}>Carbs Goal</Text>
+              <View style={styles.goalValueContainer}>
+                <Text style={styles.goalValue}>{macroGoals.carbs} g</Text>
+                <Text style={styles.arrow}>{">"}</Text>
+              </View>
+            </TouchableOpacity>
 
-              <ProfileInputGlass
-                label="Allergies"
-                value={profile.allergies}
-                placeholder="List allergies"
-                onChange={(v) => updateField("allergies", v)}
-                multiline
-              />
+            <TouchableOpacity
+              onPress={() => openEdit("protein", macroGoals.protein)}
+              style={styles.goalRow}
+            >
+              <Text style={styles.goalLabel}>Protein Goal</Text>
+              <View style={styles.goalValueContainer}>
+                <Text style={styles.goalValue}>{macroGoals.protein} g</Text>
+                <Text style={styles.arrow}>{">"}</Text>
+              </View>
+            </TouchableOpacity>
 
-              <TouchableOpacity
-              onPress={saveProfile}
-              style={{
-                  marginTop: 20,
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                  padding: 15,
-                  borderRadius: 15,
-                  alignItems: "center",
-                  borderWidth: 1,
-                  borderColor: "rgba(255,255,255,0.3)",
-              }}
-              >
-                <Text style={{ color: "white", fontSize: 18, fontWeight: "600" }}>
-                    Save Profile
+            <TouchableOpacity
+              onPress={() => openEdit("fats", macroGoals.fats)}
+              style={styles.goalRow}
+            >
+              <Text style={styles.goalLabel}>Fats Goal</Text>
+              <View style={styles.goalValueContainer}>
+                <Text style={styles.goalValue}>{macroGoals.fats} g</Text>
+                <Text style={styles.arrow}>{">"}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => openEdit("calorieGoal", calorieGoal)}
+              style={styles.goalRow}
+            >
+              <Text style={styles.goalLabel}>Calorie Goal</Text>
+              <View style={styles.goalValueContainer}>
+                <Text style={styles.goalValue}>{calorieGoal} kcal</Text>
+                <Text style={styles.arrow}>{">"}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={{ marginTop: 15 }}>
+              <Text style={{ color: "white", opacity: 0.8, fontSize: 16 }}>
+                Estimated calories from goals:{" "}
+                <Text style={{ fontWeight: "700", color: "white" }}>
+                  {estimatedGoalCalories} kcal
                 </Text>
-              </TouchableOpacity>
-          </ScrollView>
-        </SafeAreaView>
+              </Text>
+            </View>
+          </Glass>
+
+          <EditNumberModal
+            visible={!!editField}
+            label={editField || ""}
+            value={editValue}
+            onClose={() => setEditField(null)}
+            onSave={saveEdit}
+          />
+        </ScrollView>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
 
-function ProfileInputGlass({
-  label,
-  value,
-  placeholder,
-  onChange,
-  multiline = false,
-}: {
-  label: string;
-  value: string;
-  placeholder: string;
-  onChange: (v: string) => void;
-  multiline?: boolean;
-}) {
-  return (
-    <Glass style={{ padding: 15, marginBottom: 16 }}>
-      <Text style={styles.label}>{label}</Text>
-
-      <TextInput
-        style={[styles.input, multiline ? styles.textArea : null]}
-        placeholder={placeholder}
-        placeholderTextColor="rgba(255,255,255,0.4)"
-        value={value}
-        onChangeText={onChange}
-        multiline={multiline}
-      />
-    </Glass>
-  );
-}
-
-
-const styles = {
-  label: {
+const styles = StyleSheet.create({
+  title: {
     color: "white",
-    fontSize: 16,
-    marginBottom: 6,
+    fontSize: 32,
+    fontWeight: "bold",
   },
-
+  header: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
   input: {
-    padding: 12,
-    borderRadius: 12,
     backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
+    padding: 14,
+    borderRadius: 12,
+    marginVertical: 6,
     color: "white",
     fontSize: 16,
   },
-
-  textArea: {
-    height: 90,
-    textAlignVertical: "top" as any,
-  } as any,
-};
+  saveButton: {
+    marginTop: 12,
+    backgroundColor: "white",
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  saveText: {
+    color: "black",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  goalRow: {
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  goalLabel: {
+    color: "white",
+    fontSize: 18,
+  },
+  goalValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  goalValue: {
+    color: "white",
+    opacity: 0.85,
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  arrow: {
+    color: "white",
+    opacity: 0.5,
+    fontSize: 20,
+    marginLeft: 6,
+  },
+});

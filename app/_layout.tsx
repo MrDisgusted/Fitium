@@ -1,15 +1,20 @@
 import { Stack } from "expo-router";
 import "./global.css";
+import { NutritionProvider } from "../components/provider/NutritionProvider";
+import { WorkoutProvider } from "../components/provider/WorkoutProvider";
 
 export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-    //anytime you add a new folder make sure to put copy paste
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <NutritionProvider>
+      <WorkoutProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </WorkoutProvider>
+    </NutritionProvider>
   );
 }

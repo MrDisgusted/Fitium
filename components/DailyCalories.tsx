@@ -3,17 +3,18 @@ import React from "react";
 
 type Props = {
   calories: number;
+  goal?: number;
 };
 
-export default function DailyCalories({ calories }: Props) {
+export default function DailyCalories({ calories, goal }: Props) {
   return (
-    <View style={{ marginTop: 1 }}>
-      <Text style={{ color: "white", fontSize: 22, fontWeight: "700" }}>
+    <View style={{ gap: 10 }}>
+      <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
         Daily Calories
       </Text>
 
-      <Text style={{ color: "white", fontSize: 32, fontWeight: "800", marginTop: 5 }}>
-        {calories} kcal
+      <Text style={{ color: "white", fontSize: 26, fontWeight: "900" }}>
+        {calories} {goal ? `/ ${goal}` : ""} kcal
       </Text>
     </View>
   );

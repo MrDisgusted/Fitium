@@ -18,6 +18,7 @@
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",
+    "expo-sensors": "~15.0.8",
     "expo-status-bar": "~3.0.9",
     "init": "^0.1.2",
     "nativewind": "^4.2.1",

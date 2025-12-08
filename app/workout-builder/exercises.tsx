@@ -1,179 +1,131 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ImageBackground,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ImageBackground } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, router } from "expo-router";
 
-export default function ExercisesSetup() {
-  const router = useRouter();
+export default function Exercises() {
   const params = useLocalSearchParams();
 
-  const totalDays = Number(params.days);
-  const restDaysParam = params.rest;
-  const restDays: number[] = Array.isArray(restDaysParam)
-    ? JSON.parse(restDaysParam[0] || "[]")
-    : JSON.parse(restDaysParam || "[]");
+  const rawDays = Array.isArray(params.days) ? params.days[0] : params.days;
+  const rawNames = Array.isArray(params.names) ? params.names[0] : params.names;
+  const rawRest = Array.isArray(params.rest) ? params.rest[0] : params.rest;
 
-  const [days, setDays] = useState(
-    Array.from({ length: totalDays }).map((_, i) => ({
-      index: i,
-      name: "",
-      rest: restDays.includes(i),
+  const days = Number(rawDays);
+  const names = JSON.parse(rawNames || "[]");
+  const rest = JSON.parse(rawRest || "[]");
+
+
+  const [workouts, setWorkouts] = useState(
+    Array.from({ length: days }).map((_, i) => ({
+      name: names[i],
+      rest: rest.includes(i),
       exercises: [],
     }))
   );
 
-  const updateDayName = (i: number, val: string) => {
-    const copy = [...days];
-    copy[i].name = val;
-    setDays(copy);
-  };
-
-  const addExercise = (dayIndex: number) => {
-    const copy = [...days];
-    copy[dayIndex].exercises.push({
+  const addExercise = (i) => {
+    const copy = [...workouts];
+    copy[i].exercises.push({
+      id: Date.now().toString() + Math.random(),
       name: "",
       weight: 0,
       reps: 0,
       sets: 0,
       increase: 0,
     });
-    setDays(copy);
+    setWorkouts(copy);
   };
 
-  const updateExercise = (
-    dayIndex: number,
-    exIndex: number,
-    field: string,
-    val: any
-  ) => {
-    const copy = [...days];
-    copy[dayIndex].exercises[exIndex][field] = val;
-    setDays(copy);
+  const update = (day, ex, key, val) => {
+    const copy = [...workouts];
+    copy[day].exercises[ex][key] = val;
+    setWorkouts(copy);
   };
 
   return (
-    <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
+    <ImageBackground source={require("../../assets/wallpaper.png")} style={{ flex: 1 }}>
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
-          <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-            Define Training Days
-          </Text>
+          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>Exercises</Text>
 
-          {days.map((day, i) => (
+          {workouts.map((d, i) => (
             <Glass key={i} style={{ padding: 20, borderRadius: 25 }}>
-              <Text style={{ color: "white", fontSize: 20, marginBottom: 10 }}>
-                Day {i + 1}
-              </Text>
+              <Text style={{ color: "white", fontSize: 20, marginBottom: 10 }}>{d.name}</Text>
 
-              {day.rest ? (
-                <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 16 }}>
-                  Rest Day
-                </Text>
+              {d.rest ? (
+                <Text style={{ color: "rgba(255,255,255,0.7)" }}>Rest Day</Text>
               ) : (
                 <>
-                  <TextInput
-                    placeholder="Name this training day"
-                    placeholderTextColor="#aaa"
-                    value={day.name}
-                    onChangeText={(v) => updateDayName(i, v)}
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.15)",
-                      padding: 12,
-                      borderRadius: 12,
-                      color: "white",
-                      marginBottom: 15,
-                    }}
-                  />
-
-                  {day.exercises.map((ex, exIndex) => (
-                    <View
-                      key={exIndex}
-                      style={{ marginBottom: 20, gap: 10 }}
-                    >
+                  {d.exercises.map((ex, exIndex) => (
+                    <View key={ex.id} style={{ gap: 10, marginBottom: 15 }}>
                       <TextInput
                         placeholder="Exercise Name"
                         placeholderTextColor="#aaa"
                         value={ex.name}
-                        onChangeText={(v) =>
-                          updateExercise(i, exIndex, "name", v)
-                        }
-                        style={styles.input}
+                        onChangeText={(v) => update(i, exIndex, "name", v)}
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.12)",
+                          padding: 12,
+                          borderRadius: 10,
+                          color: "white",
+                        }}
                       />
 
                       <TextInput
                         placeholder="Weight (kg)"
                         placeholderTextColor="#aaa"
-                        keyboardType="numeric"
                         value={String(ex.weight)}
-                        onChangeText={(v) =>
-                          updateExercise(
-                            i,
-                            exIndex,
-                            "weight",
-                            Number(v) || 0
-                          )
-                        }
-                        style={styles.input}
+                        onChangeText={(v) => update(i, exIndex, "weight", Number(v))}
+                        keyboardType="numeric"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.12)",
+                          padding: 12,
+                          borderRadius: 10,
+                          color: "white",
+                        }}
                       />
 
                       <TextInput
                         placeholder="Reps"
                         placeholderTextColor="#aaa"
-                        keyboardType="numeric"
                         value={String(ex.reps)}
-                        onChangeText={(v) =>
-                          updateExercise(
-                            i,
-                            exIndex,
-                            "reps",
-                            Number(v) || 0
-                          )
-                        }
-                        style={styles.input}
+                        onChangeText={(v) => update(i, exIndex, "reps", Number(v))}
+                        keyboardType="numeric"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.12)",
+                          padding: 12,
+                          borderRadius: 10,
+                          color: "white",
+                        }}
                       />
 
                       <TextInput
                         placeholder="Sets"
                         placeholderTextColor="#aaa"
-                        keyboardType="numeric"
                         value={String(ex.sets)}
-                        onChangeText={(v) =>
-                          updateExercise(
-                            i,
-                            exIndex,
-                            "sets",
-                            Number(v) || 0
-                          )
-                        }
-                        style={styles.input}
+                        onChangeText={(v) => update(i, exIndex, "sets", Number(v))}
+                        keyboardType="numeric"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.12)",
+                          padding: 12,
+                          borderRadius: 10,
+                          color: "white",
+                        }}
                       />
 
                       <TextInput
-                        placeholder="Weekly Increase (kg)"
+                        placeholder="Overload Increase (kg)"
                         placeholderTextColor="#aaa"
-                        keyboardType="numeric"
                         value={String(ex.increase)}
-                        onChangeText={(v) =>
-                          updateExercise(
-                            i,
-                            exIndex,
-                            "increase",
-                            Number(v) || 0
-                          )
-                        }
-                        style={styles.input}
+                        onChangeText={(v) => update(i, exIndex, "increase", Number(v))}
+                        keyboardType="numeric"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.12)",
+                          padding: 12,
+                          borderRadius: 10,
+                          color: "white",
+                        }}
                       />
                     </View>
                   ))}
@@ -181,21 +133,13 @@ export default function ExercisesSetup() {
                   <TouchableOpacity
                     onPress={() => addExercise(i)}
                     style={{
+                      backgroundColor: "white",
                       padding: 12,
                       borderRadius: 12,
-                      backgroundColor: "white",
                       alignItems: "center",
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "700",
-                        color: "black",
-                      }}
-                    >
-                      + Add Exercise
-                    </Text>
+                    <Text style={{ color: "black", fontWeight: "700" }}>+ Add Exercise</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -204,35 +148,22 @@ export default function ExercisesSetup() {
 
           <TouchableOpacity
             onPress={() =>
-              router.push({
+              router.navigate({
                 pathname: "/workout-builder/review",
-                params: { data: JSON.stringify(days) },
+                params: { workouts: JSON.stringify(workouts) },
               })
             }
             style={{
-              paddingVertical: 16,
               backgroundColor: "white",
+              padding: 16,
               borderRadius: 20,
               alignItems: "center",
-              marginBottom: 40,
             }}
           >
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "black" }}>
-              Review Split
-            </Text>
+            <Text style={{ color: "black", fontSize: 18, fontWeight: "700" }}>Next</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
 }
-
-const styles = {
-  input: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    padding: 12,
-    borderRadius: 12,
-    color: "white",
-    fontSize: 16,
-  },
-};

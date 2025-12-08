@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -13,56 +13,77 @@ import { useRouter } from "expo-router";
 
 export default function Workouts() {
   const router = useRouter();
-  const {
-    activeSplit,
-    today,
-    tomorrow,
-    cycleIndex,
-    finishExercise,
-    applyOverload,
-    todayState,
-  } = useWorkout();
+  const { getTodayWorkout, getTomorrowWorkout, activeSplit } = useWorkout();
 
-  if (!activeSplit || !today) {
+  const today = getTodayWorkout();
+  const tomorrow = getTomorrowWorkout();
+
+  const [completedExercises, setCompletedExercises] = useState([]);
+
+  if (!activeSplit) {
     return (
       <ImageBackground
         source={require("../../assets/wallpaper.png")}
         style={{ flex: 1 }}
+        resizeMode="cover"
       >
-        <SafeAreaView
-          style={{
-            flex: 1,
-            padding: 20,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
+            No Workout Split
+          </Text>
+
           <TouchableOpacity
-            onPress={() => router.push("../workout-builder/index.tsx")}
+            onPress={() => router.push("/workout-builder")}
             style={{
-              padding: 12,
-              borderRadius: 12,
               backgroundColor: "white",
-              marginBottom: 20,
+              paddingVertical: 14,
+              borderRadius: 14,
+              alignItems: "center",
+              marginTop: 10,
             }}
           >
-            <Text style={{ fontWeight: "700", color: "black" }}>
-              Create New Split
+            <Text style={{ color: "black", fontSize: 16, fontWeight: "700" }}>
+              Create Workout Split
             </Text>
           </TouchableOpacity>
 
-          <Text style={{ color: "white", fontSize: 22 }}>
-            No split selected
-          </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/workout-planner")}
+            style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              paddingVertical: 14,
+              borderRadius: 14,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16, fontWeight: "700" }}>
+              Workout Planner
+            </Text>
+          </TouchableOpacity>
         </SafeAreaView>
       </ImageBackground>
     );
   }
 
-  const totalExercises = today.rest ? 0 : today.exercises.length;
-  const finished = todayState.finished.length;
-  const percent =
-    totalExercises === 0 ? 0 : Math.round((finished / totalExercises) * 100);
+  const day = today?.day;
+  const dayIndex = today?.index;
+
+  const finishExercise = (exerciseIndex) => {
+    const updated = [...completedExercises, exerciseIndex];
+    setCompletedExercises(updated);
+  };
+
+  const applyOverload = (exercise) => {
+    exercise.weight = Number(exercise.weight) + Number(exercise.increase || 0);
+  };
+
+  const remainingExercises =
+    day?.exercises?.filter((_, i) => !completedExercises.includes(i)) || [];
+
+  const dayComplete =
+    !day?.rest &&
+    remainingExercises.length === 0 &&
+    day?.exercises?.length > 0;
 
   return (
     <ImageBackground
@@ -70,213 +91,149 @@ export default function Workouts() {
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ padding: 20, gap: 20, flex: 1 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-              Workout
-            </Text>
+      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+        <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
+          Workouts
+        </Text>
 
-            <TouchableOpacity
-              onPress={() => router.push("/workout-builder/index")}
-              style={{
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 999,
-                backgroundColor: "rgba(255,255,255,0.15)",
-              }}
-            >
-              <Text style={{ color: "white", fontWeight: "700" }}>Planner</Text>
-            </TouchableOpacity>
-          </View>
+        <Glass style={{ padding: 20, borderRadius: 25 }}>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 16 }}>
+            Today
+          </Text>
 
-          <Glass style={{ padding: 20, borderRadius: 25 }}>
-            <Text style={{ fontSize: 16, color: "rgba(255,255,255,0.8)" }}>
-              Today — Day {cycleIndex + 1}
-            </Text>
+          <Text style={{ color: "white", fontSize: 24, fontWeight: "700" }}>
+            {day?.rest ? "Rest Day" : day?.name}
+          </Text>
 
+          {!day?.rest && (
             <Text
               style={{
-                fontSize: 22,
-                color: "white",
-                fontWeight: "700",
+                color: "rgba(255,255,255,0.8)",
                 marginTop: 5,
+                fontSize: 15,
               }}
             >
-              {today.rest ? "Rest Day" : today.name}
+              {remainingExercises.length} exercises remaining
             </Text>
+          )}
 
-            {!today.rest && (
-              <>
+          {dayComplete && (
+            <Text style={{ marginTop: 10, color: "#60ffd0", fontSize: 16 }}>
+              Day Complete
+            </Text>
+          )}
+
+          {tomorrow && (
+            <>
+              <Text
+                style={{
+                  marginTop: 12,
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: 14,
+                }}
+              >
+                Tomorrow:
+              </Text>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 18,
+                  fontWeight: "600",
+                }}
+              >
+                {tomorrow.day?.rest ? "Rest Day" : tomorrow.day?.name}
+              </Text>
+            </>
+          )}
+        </Glass>
+
+        <ScrollView contentContainerStyle={{ gap: 14 }}>
+          {day?.rest && (
+            <Text
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                fontSize: 16,
+                textAlign: "center",
+                marginTop: 20,
+              }}
+            >
+              Enjoy your rest day.
+            </Text>
+          )}
+
+          {!day?.rest &&
+            remainingExercises.map((ex, i) => (
+              <Glass key={i} style={{ padding: 16, borderRadius: 20 }}>
+                <Text style={{ color: "white", fontSize: 20, fontWeight: "700" }}>
+                  {ex.name}
+                </Text>
+
                 <Text
                   style={{
-                    marginTop: 10,
                     color: "rgba(255,255,255,0.7)",
-                    fontSize: 15,
+                    marginTop: 6,
+                    fontSize: 16,
                   }}
                 >
-                  {finished} / {totalExercises} exercises
+                  {ex.weight} kg × {ex.reps} reps × {ex.sets} sets
                 </Text>
 
                 <View
                   style={{
-                    height: 8,
-                    backgroundColor: "rgba(255,255,255,0.2)",
-                    borderRadius: 100,
-                    overflow: "hidden",
-                    marginTop: 8,
+                    flexDirection: "row",
+                    gap: 10,
+                    marginTop: 14,
                   }}
                 >
-                  <View
+                  <TouchableOpacity
+                    onPress={() => applyOverload(ex)}
                     style={{
-                      width: `${percent}%`,
-                      height: "100%",
-                      backgroundColor: "white",
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "rgba(255,255,255,0.6)",
+                      alignItems: "center",
                     }}
-                  />
-                </View>
-              </>
-            )}
-
-            <Text
-              style={{
-                marginTop: 10,
-                color: "rgba(255,255,255,0.7)",
-                fontSize: 15,
-              }}
-            >
-              Tomorrow — {tomorrow.rest ? "Rest Day" : tomorrow.name}
-            </Text>
-          </Glass>
-
-          <ScrollView contentContainerStyle={{ gap: 15 }}>
-            {today.rest ? (
-              <Text
-                style={{
-                  textAlign: "center",
-                  color: "rgba(255,255,255,0.8)",
-                  marginTop: 20,
-                  fontSize: 18,
-                }}
-              >
-                Enjoy your rest day.
-              </Text>
-            ) : (
-              today.exercises.map((ex) => {
-                const isDone = todayState.finished.includes(ex.id);
-                const usedOverload = todayState.overloadUsed.includes(ex.id);
-
-                return (
-                  <Glass
-                    key={ex.id}
-                    style={{ padding: 18, borderRadius: 20 }}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginBottom: 8,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: "white",
-                          fontSize: 18,
-                          fontWeight: "600",
-                        }}
-                      >
-                        {ex.name}
-                      </Text>
-
-                      {isDone && (
-                        <Text
-                          style={{
-                            color: "#60ffd0",
-                            fontWeight: "700",
-                          }}
-                        >
-                          Done
-                        </Text>
-                      )}
-                    </View>
-
                     <Text
                       style={{
-                        color: "rgba(255,255,255,0.8)",
-                        marginBottom: 12,
+                        color: "white",
                         fontSize: 15,
+                        fontWeight: "600",
                       }}
                     >
-                      {ex.weight}kg × {ex.reps} reps × {ex.sets} sets
+                      +{ex.increase || 0}kg Overload
                     </Text>
+                  </TouchableOpacity>
 
-                    <View
+                  <TouchableOpacity
+                    onPress={() => {
+                      const originalIndex = day.exercises.indexOf(ex);
+                      finishExercise(originalIndex);
+                    }}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      backgroundColor: "white",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
                       style={{
-                        flexDirection: "row",
-                        gap: 10,
+                        color: "black",
+                        fontSize: 15,
+                        fontWeight: "700",
                       }}
                     >
-                      <TouchableOpacity
-                        disabled={usedOverload}
-                        onPress={() => applyOverload(cycleIndex, ex.id)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 10,
-                          borderRadius: 12,
-                          borderWidth: 1,
-                          borderColor: usedOverload
-                            ? "rgba(255,255,255,0.3)"
-                            : "rgba(255,255,255,0.7)",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: usedOverload
-                              ? "rgba(255,255,255,0.3)"
-                              : "white",
-                            fontWeight: "700",
-                          }}
-                        >
-                          +{ex.suggestedIncrease}kg
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        disabled={isDone}
-                        onPress={() => finishExercise(ex.id)}
-                        style={{
-                          flex: 1,
-                          paddingVertical: 10,
-                          borderRadius: 12,
-                          backgroundColor: isDone
-                            ? "rgba(255,255,255,0.3)"
-                            : "white",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: isDone ? "rgba(0,0,0,0.3)" : "black",
-                            fontWeight: "700",
-                          }}
-                        >
-                          {isDone ? "Finished" : "Finish"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Glass>
-                );
-              })
-            )}
-          </ScrollView>
-        </View>
+                      Complete
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Glass>
+            ))}
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );

@@ -11,6 +11,7 @@ export default function WorkoutBuilderLayout() {
       <Stack.Screen name="rest-days" />
       <Stack.Screen name="exercises" />
       <Stack.Screen name="review" />
+      <Stack.Screen name="days" />
     </Stack>
   );
 }

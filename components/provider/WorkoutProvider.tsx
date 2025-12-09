@@ -1,233 +1,110 @@
-import React, {
-  createContext,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const WorkoutContext = createContext<any>(null);
-
-const todayKeyFromDate = (d: Date) => {
-  const dayIndex = d.getDay();
-  const map = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ] as const;
-  return map[dayIndex];
-};
-
-const isoToday = () => new Date().toISOString().slice(0, 10);
-
-const daysBetween = (a: string, b: string) => {
-  const d1 = new Date(a);
-  const d2 = new Date(b);
-  return Math.floor((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
-};
-
-const defaultSplit = {
-  monday: {
-    id: "monday",
-    name: "Back & Biceps",
-    exercises: [
-      {
-        id: "lat-pulldown",
-        name: "Lat Pulldown",
-        weight: 45,
-        reps: 12,
-        suggestedIncrease: 5,
-        lastOverloadDate: null as string | null,
-      },
-      {
-        id: "barbell-row",
-        name: "Barbell Row",
-        weight: 50,
-        reps: 10,
-        suggestedIncrease: 5,
-        lastOverloadDate: null as string | null,
-      },
-    ],
-  },
-  tuesday: {
-    id: "tuesday",
-    name: "Chest & Triceps",
-    exercises: [
-      {
-        id: "bench-press",
-        name: "Bench Press",
-        weight: 60,
-        reps: 8,
-        suggestedIncrease: 2.5,
-        lastOverloadDate: null as string | null,
-      },
-      {
-        id: "incline-dumbbell",
-        name: "Incline Dumbbell Press",
-        weight: 22.5,
-        reps: 10,
-        suggestedIncrease: 2.5,
-        lastOverloadDate: null as string | null,
-      },
-    ],
-  },
-  wednesday: {
-    id: "wednesday",
-    name: "Legs",
-    exercises: [
-      {
-        id: "squat",
-        name: "Back Squat",
-        weight: 70,
-        reps: 8,
-        suggestedIncrease: 5,
-        lastOverloadDate: null as string | null,
-      },
-      {
-        id: "leg-press",
-        name: "Leg Press",
-        weight: 100,
-        reps: 12,
-        suggestedIncrease: 10,
-        lastOverloadDate: null as string | null,
-      },
-    ],
-  },
-  thursday: {
-    id: "thursday",
-    name: "Shoulders",
-    exercises: [
-      {
-        id: "ohp",
-        name: "Overhead Press",
-        weight: 35,
-        reps: 8,
-        suggestedIncrease: 2.5,
-        lastOverloadDate: null as string | null,
-      },
-    ],
-  },
-  friday: {
-    id: "friday",
-    name: "Arms",
-    exercises: [
-      {
-        id: "ez-curl",
-        name: "EZ Bar Curl",
-        weight: 25,
-        reps: 12,
-        suggestedIncrease: 2.5,
-        lastOverloadDate: null as string | null,
-      },
-    ],
-  },
-};
+const WorkoutContext = createContext(null);
 
 export function WorkoutProvider({ children }) {
-  const [split, setSplit] = useState<any>(defaultSplit);
-
-  const [todayState, setTodayState] = useState({
-    date: isoToday(),
-    completedExerciseIds: [] as string[],
-  });
-
-  const todayKey = todayKeyFromDate(new Date());
-  const todayWorkout = split[todayKey] || null;
+  const [splits, setSplits] = useState([]);
+  const [activeSplitId, setActiveSplitId] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [lastDate, setLastDate] = useState("");
 
   useEffect(() => {
-    const today = isoToday();
-    if (todayState.date !== today) {
-      setTodayState({ date: today, completedExerciseIds: [] });
+    load();
+  }, []);
+
+  const load = async () => {
+    const s1 = await AsyncStorage.getItem("splits");
+    const s2 = await AsyncStorage.getItem("activeSplitId");
+    const s3 = await AsyncStorage.getItem("currentIndex");
+    const s4 = await AsyncStorage.getItem("lastDate");
+
+    if (s1) setSplits(JSON.parse(s1));
+    if (s2) setActiveSplitId(JSON.parse(s2));
+    if (s3) setCurrentIndex(JSON.parse(s3));
+    if (s4) setLastDate(JSON.parse(s4));
+  };
+
+  const persistSplits = async (next) => {
+    setSplits(next);
+    await AsyncStorage.setItem("splits", JSON.stringify(next));
+  };
+
+  const activateSplit = async (id) => {
+    setActiveSplitId(id);
+    await AsyncStorage.setItem("activeSplitId", JSON.stringify(id));
+    setCurrentIndex(0);
+    await AsyncStorage.setItem("currentIndex", JSON.stringify(0));
+    await AsyncStorage.setItem("lastDate", JSON.stringify(""));
+  };
+
+  const addSplit = async (split) => {
+    const next = [...splits, split];
+    await persistSplits(next);
+    await activateSplit(split.id);
+  };
+
+  const deleteSplit = async (id) => {
+    const next = splits.filter((s) => s.id !== id);
+    await persistSplits(next);
+    if (id === activeSplitId) {
+      setActiveSplitId(null);
+      await AsyncStorage.removeItem("activeSplitId");
     }
-  }, [todayState.date]);
-
-  const progress = useMemo(() => {
-    if (!todayWorkout) return { completed: 0, total: 0, ratio: 0 };
-    const total = todayWorkout.exercises.length;
-    const completed = todayWorkout.exercises.filter((ex: any) =>
-      todayState.completedExerciseIds.includes(ex.id)
-    ).length;
-    const ratio = total === 0 ? 0 : completed / total;
-    return { completed, total, ratio };
-  }, [todayWorkout, todayState.completedExerciseIds]);
-
-  const finishExercise = (exerciseId: string) => {
-    const today = isoToday();
-    setTodayState((prev) => {
-      if (prev.date !== today) {
-        return { date: today, completedExerciseIds: [exerciseId] };
-      }
-      if (prev.completedExerciseIds.includes(exerciseId)) return prev;
-      return {
-        ...prev,
-        completedExerciseIds: [...prev.completedExerciseIds, exerciseId],
-      };
-    });
   };
 
-  const applyOverload = (dayKey: string, exerciseId: string) => {
-    const today = isoToday();
-    setSplit((prev: any) => {
-      const day = prev[dayKey];
-      if (!day) return prev;
-      const updatedExercises = day.exercises.map((ex: any) => {
-        if (ex.id !== exerciseId) return ex;
-        return {
-          ...ex,
-          weight: ex.weight + ex.suggestedIncrease,
-          lastOverloadDate: today,
-        };
-      });
-      return {
-        ...prev,
-        [dayKey]: {
-          ...day,
-          exercises: updatedExercises,
-        },
-      };
-    });
+  const activeSplit = splits.find((s) => s.id === activeSplitId) || null;
+
+  const advanceIfNeeded = async () => {
+    if (!activeSplit) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (lastDate === today) return;
+
+    const len = activeSplit.days.length;
+    const next = (currentIndex + 1) % len;
+
+    setCurrentIndex(next);
+    await AsyncStorage.setItem("currentIndex", JSON.stringify(next));
+    setLastDate(today);
+    await AsyncStorage.setItem("lastDate", JSON.stringify(today));
   };
 
-  const canOverload = (dayKey: string, ex: any) => {
-    if (!ex.lastOverloadDate) return true;
-    const diff = daysBetween(ex.lastOverloadDate, isoToday());
-    return diff >= 7;
+  useEffect(() => {
+    advanceIfNeeded();
+  }, [activeSplit]);
+
+  const getTodayWorkout = () => {
+    if (!activeSplit || !Array.isArray(activeSplit.days)) return null;
+    const day = activeSplit.days[currentIndex];
+    if (!day) return null;
+    return { index: currentIndex, day };
   };
 
-  const nextDayKey = () => {
-    const order = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const idx = order.indexOf(todayKey);
-    const next = order[(idx + 1) % order.length];
-    return next;
+
+  const getTomorrowWorkout = () => {
+    if (!activeSplit || !Array.isArray(activeSplit.days)) return null;
+    const len = activeSplit.days.length;
+    if (len === 0) return null;
+    const next = (currentIndex + 1) % len;
+    const day = activeSplit.days[next];
+    if (!day) return null;
+    return { index: next, day };
   };
 
-  const tomorrowWorkout = split[nextDayKey()] || null;
 
   return (
     <WorkoutContext.Provider
       value={{
-        split,
-        setSplit,
-        todayKey,
-        todayWorkout,
-        todayState,
-        progress,
-        finishExercise,
-        applyOverload,
-        canOverload,
-        tomorrowWorkout,
+        splits,
+        addSplit,
+        deleteSplit,
+        activateSplit,
+        activeSplit,
+        activeSplitId,
+        getTodayWorkout,
+        getTomorrowWorkout,
       }}
     >
       {children}

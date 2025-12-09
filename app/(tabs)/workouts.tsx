@@ -1,10 +1,9 @@
-import React from "react";
+import { useState } from "react";
 import {
   View,
   Text,
-  ImageBackground,
   TouchableOpacity,
-  StyleSheet,
+  ImageBackground,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,288 +12,229 @@ import { useWorkout } from "../../components/provider/WorkoutProvider";
 import { useRouter } from "expo-router";
 
 export default function Workouts() {
-  const {
-    todayWorkout,
-    todayKey,
-    todayState,
-    progress,
-    applyOverload,
-    finishExercise,
-    canOverload,
-    tomorrowWorkout,
-  } = useWorkout();
-
   const router = useRouter();
+  const { getTodayWorkout, getTomorrowWorkout, activeSplit } = useWorkout();
 
-  const isCompletedDay =
-    progress.total > 0 && progress.completed === progress.total;
+  const today = getTodayWorkout();
+  const tomorrow = getTomorrowWorkout();
 
-  const progressPercent = Math.round(progress.ratio * 100);
+  const [completedExercises, setCompletedExercises] = useState([]);
+
+  if (!activeSplit) {
+    return (
+      <ImageBackground
+        source={require("../../assets/wallpaper.png")}
+        style={{ flex: 1 }}
+        resizeMode="cover"
+      >
+        <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
+            No Workout Split
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => router.push("/workout-builder")}
+            style={{
+              backgroundColor: "white",
+              paddingVertical: 14,
+              borderRadius: 14,
+              alignItems: "center",
+              marginTop: 10,
+            }}
+          >
+            <Text style={{ color: "black", fontSize: 16, fontWeight: "700" }}>
+              Create Workout Split
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/workout-planner")}
+            style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              paddingVertical: 14,
+              borderRadius: 14,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 16, fontWeight: "700" }}>
+              Workout Planner
+            </Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </ImageBackground>
+    );
+  }
+
+  const day = today?.day;
+  const dayIndex = today?.index;
+
+  const finishExercise = (exerciseIndex) => {
+    const updated = [...completedExercises, exerciseIndex];
+    setCompletedExercises(updated);
+  };
+
+  const applyOverload = (exercise) => {
+    exercise.weight = Number(exercise.weight) + Number(exercise.increase || 0);
+  };
+
+  const remainingExercises =
+    day?.exercises?.filter((_, i) => !completedExercises.includes(i)) || [];
+
+  const dayComplete =
+    !day?.rest &&
+    remainingExercises.length === 0 &&
+    day?.exercises?.length > 0;
 
   return (
     <ImageBackground
       source={require("../../assets/wallpaper.png")}
-      style={styles.background}
+      style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <View style={styles.headerRow}>
-            <Text style={styles.title}>Workouts</Text>
-            <TouchableOpacity
-              style={styles.plannerButton}
-              onPress={() => router.push("/workout-planner")}
+      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+        <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
+          Workouts
+        </Text>
+
+        <Glass style={{ padding: 20, borderRadius: 25 }}>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 16 }}>
+            Today
+          </Text>
+
+          <Text style={{ color: "white", fontSize: 24, fontWeight: "700" }}>
+            {day?.rest ? "Rest Day" : day?.name}
+          </Text>
+
+          {!day?.rest && (
+            <Text
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                marginTop: 5,
+                fontSize: 15,
+              }}
             >
-              <Text style={styles.plannerText}>Planner</Text>
-            </TouchableOpacity>
-          </View>
+              {remainingExercises.length} exercises remaining
+            </Text>
+          )}
 
-          <Glass style={styles.todayCard}>
-            {todayWorkout ? (
-              <>
-                <Text style={styles.todayLabel}>Today</Text>
-                <Text style={styles.workoutName}>{todayWorkout.name}</Text>
+          {dayComplete && (
+            <Text style={{ marginTop: 10, color: "#60ffd0", fontSize: 16 }}>
+              Day Complete
+            </Text>
+          )}
 
-                {progress.total > 0 && (
-                  <>
-                    <Text style={styles.progressText}>
-                      {progress.completed} / {progress.total} exercises
-                    </Text>
-                    <View style={styles.progressBarOuter}>
-                      <View
-                        style={[
-                          styles.progressBarInner,
-                          { width: `${progressPercent}%` },
-                        ]}
-                      />
-                    </View>
-                  </>
-                )}
-
-                {isCompletedDay && tomorrowWorkout && (
-                  <Text style={styles.tomorrowText}>
-                    Completed. Tomorrow: {tomorrowWorkout.name}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <>
-                <Text style={styles.todayLabel}>Today</Text>
-                <Text style={styles.workoutName}>Rest Day</Text>
-                {tomorrowWorkout && (
-                  <Text style={styles.tomorrowText}>
-                    Next: {tomorrowWorkout.name}
-                  </Text>
-                )}
-              </>
-            )}
-          </Glass>
-
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 12 }}>
-            {todayWorkout &&
-              todayWorkout.exercises.map((ex: any) => {
-                const completed = todayState.completedExerciseIds.includes(
-                  ex.id
-                );
-                const overloadAvailable = canOverload(todayKey, ex);
-                return (
-                  <Glass key={ex.id} style={styles.exerciseCard}>
-                    <View
-                      style={[
-                        styles.exerciseHeaderRow,
-                        completed && { opacity: 0.5 },
-                      ]}
-                    >
-                      <Text style={styles.exerciseName}>{ex.name}</Text>
-                      {completed && (
-                        <Text style={styles.completedTag}>Done</Text>
-                      )}
-                    </View>
-
-                    <View style={styles.exerciseInfoRow}>
-                      <Text style={styles.exerciseInfo}>
-                        {ex.weight} kg × {ex.reps} reps
-                      </Text>
-                    </View>
-
-                    <View style={styles.buttonsRow}>
-                      <TouchableOpacity
-                        disabled={!overloadAvailable}
-                        onPress={() => applyOverload(todayKey, ex.id)}
-                        style={[
-                          styles.overloadButton,
-                          !overloadAvailable && styles.overloadButtonDisabled,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.overloadText,
-                            !overloadAvailable && styles.overloadTextDisabled,
-                          ]}
-                        >
-                          Overload +{ex.suggestedIncrease}kg
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={() => finishExercise(ex.id)}
-                        style={styles.finishButton}
-                      >
-                        <Text style={styles.finishText}>
-                          {completed ? "Finished" : "Finish"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Glass>
-                );
-              })}
-
-            {!todayWorkout && (
-              <Text style={styles.noWorkoutText}>
-                No workout scheduled for today.
+          {tomorrow && (
+            <>
+              <Text
+                style={{
+                  marginTop: 12,
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: 14,
+                }}
+              >
+                Tomorrow:
               </Text>
-            )}
-          </ScrollView>
-        </View>
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 18,
+                  fontWeight: "600",
+                }}
+              >
+                {tomorrow.day?.rest ? "Rest Day" : tomorrow.day?.name}
+              </Text>
+            </>
+          )}
+        </Glass>
+
+        <ScrollView contentContainerStyle={{ gap: 14 }}>
+          {day?.rest && (
+            <Text
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                fontSize: 16,
+                textAlign: "center",
+                marginTop: 20,
+              }}
+            >
+              Enjoy your rest day.
+            </Text>
+          )}
+
+          {!day?.rest &&
+            remainingExercises.map((ex, i) => (
+              <Glass key={i} style={{ padding: 16, borderRadius: 20 }}>
+                <Text style={{ color: "white", fontSize: 20, fontWeight: "700" }}>
+                  {ex.name}
+                </Text>
+
+                <Text
+                  style={{
+                    color: "rgba(255,255,255,0.7)",
+                    marginTop: 6,
+                    fontSize: 16,
+                  }}
+                >
+                  {ex.weight} kg × {ex.reps} reps × {ex.sets} sets
+                </Text>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    marginTop: 14,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => applyOverload(ex)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: "rgba(255,255,255,0.6)",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 15,
+                        fontWeight: "600",
+                      }}
+                    >
+                      +{ex.increase || 0}kg Overload
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      const originalIndex = day.exercises.indexOf(ex);
+                      finishExercise(originalIndex);
+                    }}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 10,
+                      borderRadius: 12,
+                      backgroundColor: "white",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "black",
+                        fontSize: 15,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Complete
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </Glass>
+            ))}
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
 }
-
-const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-    gap: 16,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  title: {
-    color: "white",
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-  plannerButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.15)",
-  },
-  plannerText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  todayCard: {
-    padding: 18,
-    borderRadius: 25,
-  },
-  todayLabel: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  workoutName: {
-    color: "white",
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  progressText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 15,
-    marginBottom: 6,
-  },
-  progressBarOuter: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    overflow: "hidden",
-  },
-  progressBarInner: {
-    height: "100%",
-    borderRadius: 999,
-    backgroundColor: "white",
-  },
-  tomorrowText: {
-    marginTop: 10,
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 14,
-  },
-  exerciseCard: {
-    padding: 16,
-    borderRadius: 20,
-  },
-  exerciseHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  exerciseName: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  completedTag: {
-    color: "#60ffd0",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  exerciseInfoRow: {
-    marginBottom: 10,
-  },
-  exerciseInfo: {
-    color: "rgba(255,255,255,0.85)",
-    fontSize: 15,
-  },
-  buttonsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  overloadButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.6)",
-    alignItems: "center",
-  },
-  overloadButtonDisabled: {
-    borderColor: "rgba(255,255,255,0.25)",
-  },
-  overloadText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  overloadTextDisabled: {
-    color: "rgba(255,255,255,0.4)",
-  },
-  finishButton: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: "white",
-    alignItems: "center",
-  },
-  finishText: {
-    color: "black",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  noWorkoutText: {
-    color: "rgba(255,255,255,0.8)",
-    fontSize: 16,
-  },
-});

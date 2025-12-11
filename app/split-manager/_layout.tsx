@@ -3,7 +3,7 @@ import { ImageBackground } from "react-native";
 import { WorkoutProvider } from "../../components/provider/WorkoutProvider";
 import { useWallpaper } from "../../components/provider/WallpaperProvider";
 
-function WorkoutBuilderLayoutContent() {
+function SplitManagerLayoutContent() {
   const { wallpaper } = useWallpaper();
 
   return (
@@ -19,19 +19,15 @@ function WorkoutBuilderLayoutContent() {
         }}
       >
         <Stack.Screen name="index" />
-        <Stack.Screen name="rest-days" />
-        <Stack.Screen name="exercises" />
-        <Stack.Screen name="review" />
-        <Stack.Screen name="days" />
       </Stack>
     </ImageBackground>
   );
 }
 
-export default function WorkoutBuilderLayout() {
+export default function SplitManagerLayout() {
   return (
     <WorkoutProvider>
-      <WorkoutBuilderLayoutContent />
+      <SplitManagerLayoutContent />
     </WorkoutProvider>
   );
 }

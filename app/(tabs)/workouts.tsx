@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import Glass from "../../components/Glass";
 import { useWorkout } from "../../components/provider/WorkoutProvider";
 import { useRouter } from "expo-router";
@@ -14,11 +15,20 @@ import { useRouter } from "expo-router";
 export default function Workouts() {
   const router = useRouter();
   const { getTodayWorkout, getTomorrowWorkout, activeSplit } = useWorkout();
+  const [, setRefresh] = useState(0);
+
+  // Refresh the page when the tab comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      setRefresh(prev => prev + 1);
+    }, [])
+  );
 
   const today = getTodayWorkout();
   const tomorrow = getTomorrowWorkout();
 
   const [completedExercises, setCompletedExercises] = useState([]);
+  const [appliedOverloads, setAppliedOverloads] = useState<string[]>([]);
 
   if (!activeSplit) {
     return (
@@ -74,7 +84,10 @@ export default function Workouts() {
   };
 
   const applyOverload = (exercise) => {
+    // Apply the overload to the exercise weight
     exercise.weight = Number(exercise.weight) + Number(exercise.increase || 0);
+    // Track that this exercise has had overload applied using its name as key
+    setAppliedOverloads([...appliedOverloads, exercise.name]);
   };
 
   const remainingExercises =
@@ -92,9 +105,26 @@ export default function Workouts() {
       resizeMode="cover"
     >
       <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
-        <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
-          Workouts
-        </Text>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
+            Workouts
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/split-manager")}
+            style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.4)",
+            }}
+          >
+            <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+              ⚙️ Splits
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <Glass style={{ padding: 20, borderRadius: 25 }}>
           <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 16 }}>
@@ -187,23 +217,25 @@ export default function Workouts() {
                 >
                   <TouchableOpacity
                     onPress={() => applyOverload(ex)}
+                    disabled={appliedOverloads.includes(ex.name)}
                     style={{
                       flex: 1,
                       paddingVertical: 10,
                       borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: "rgba(255,255,255,0.6)",
+                      borderColor: appliedOverloads.includes(ex.name) ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
                       alignItems: "center",
+                      backgroundColor: appliedOverloads.includes(ex.name) ? "rgba(255,255,255,0.05)" : "transparent",
                     }}
                   >
                     <Text
                       style={{
-                        color: "white",
+                        color: appliedOverloads.includes(ex.name) ? "rgba(255,255,255,0.4)" : "white",
                         fontSize: 15,
                         fontWeight: "600",
                       }}
                     >
-                      +{ex.increase || 0}kg Overload
+                      {appliedOverloads.includes(ex.name) ? "✓ Overload Applied" : `+${ex.increase || 0}kg Overload`}
                     </Text>
                   </TouchableOpacity>
 

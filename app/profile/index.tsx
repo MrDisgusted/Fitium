@@ -7,11 +7,14 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Glass from "../components/Glass";
-import EditNumberModal from "../components/EditNumberModal";
-import { useNutrition } from "../components/provider/NutritionProvider";
+import * as ImagePicker from "expo-image-picker";
+import Glass from "../../components/Glass";
+import EditNumberModal from "../../components/EditNumberModal";
+import { useNutrition } from "../../components/provider/NutritionProvider";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
 
 export default function Profile() {
   const {
@@ -22,6 +25,8 @@ export default function Profile() {
     userInfo,
     setUserInfo,
   } = useNutrition();
+
+  const { setWallpaper } = useWallpaper();
 
   const [profile, setProfile] = useState(userInfo);
   const [editField, setEditField] = useState<string | null>(null);
@@ -41,6 +46,30 @@ export default function Profile() {
     setEditField(null);
   };
 
+  const pickWallpaper = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [9, 16],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await setWallpaper(result.assets[0].uri);
+        Alert.alert("Success", "Wallpaper updated!");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to pick image");
+      console.error(error);
+    }
+  };
+
+  const resetWallpaper = async () => {
+    await setWallpaper(null);
+    Alert.alert("Success", "Wallpaper reset to default!");
+  };
+
   const onSaveProfile = () => {
     setUserInfo({
       age: Number(profile.age) || 0,
@@ -56,7 +85,7 @@ export default function Profile() {
 
   return (
     <ImageBackground
-      source={require("../assets/wallpaper.png")}
+      source={require("../../assets/wallpaper.png")}
       style={{ flex: 1 }}
       resizeMode="cover"
     >
@@ -124,6 +153,18 @@ export default function Profile() {
 
             <TouchableOpacity style={styles.saveButton} onPress={onSaveProfile}>
               <Text style={styles.saveText}>Save Profile</Text>
+            </TouchableOpacity>
+          </Glass>
+
+          <Glass style={{ padding: 20, borderRadius: 25 }}>
+            <Text style={styles.header}>Wallpaper</Text>
+
+            <TouchableOpacity style={styles.wallpaperButton} onPress={pickWallpaper}>
+              <Text style={styles.buttonText}>📸 Choose Wallpaper</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.resetButton} onPress={resetWallpaper}>
+              <Text style={styles.resetButtonText}>Reset to Default</Text>
             </TouchableOpacity>
           </Glass>
 
@@ -228,6 +269,33 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: 16,
     fontWeight: "700",
+  },
+  wallpaperButton: {
+    backgroundColor: "rgba(96,255,208,0.2)",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "rgba(96,255,208,0.5)",
+  },
+  buttonText: {
+    color: "#60ffd0",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  resetButton: {
+    backgroundColor: "rgba(255,100,100,0.2)",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,100,100,0.5)",
+  },
+  resetButtonText: {
+    color: "rgba(255,100,100,0.8)",
+    fontSize: 14,
+    fontWeight: "600",
   },
   goalRow: {
     paddingVertical: 14,

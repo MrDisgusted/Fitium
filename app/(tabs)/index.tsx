@@ -8,7 +8,7 @@ import DailyCalories from "../../components/DailyCalories";
 import { useNutrition } from "../../components/provider/NutritionProvider";
 
 export default function Index() {
-  const { macros, setMacros, calories } = useNutrition();
+  const { macros, setMacros, calories, macroGoals } = useNutrition();
 
   return (
     <ImageBackground
@@ -45,19 +45,19 @@ export default function Index() {
               <MacroBar
                 label="Carbs"
                 value={macros.carbs}
-                goal={200}
+                goal={macroGoals.carbs}
                 color="#60ffd0"
               />
               <MacroBar
                 label="Protein"
                 value={macros.protein}
-                goal={180}
+                goal={macroGoals.protein}
                 color="#2483ff"
               />
               <MacroBar
                 label="Fats"
                 value={macros.fats}
-                goal={70}
+                goal={macroGoals.fats}
                 color="#24b2ff"
               />
             </View>

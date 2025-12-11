@@ -4,13 +4,16 @@ import { icons } from "../../constants/icons";
 import { ImageBackground } from "react-native";
 import { NutritionProvider } from "../../components/provider/NutritionProvider";
 import { WorkoutProvider } from "../../components/provider/WorkoutProvider";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
 
 export default function TabsLayout() {
+  const { wallpaper } = useWallpaper();
+
   return (
     <WorkoutProvider>
       <NutritionProvider>
         <ImageBackground
-          source={require("../../assets/wallpaper.png")}
+          source={wallpaper}
           style={{ flex: 1 }}
           resizeMode="cover"
         >

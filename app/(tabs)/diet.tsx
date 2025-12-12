@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {View, Text, TouchableOpacity, ImageBackground, StyleSheet} from "react-native";
+import {View, Text, TouchableOpacity, ImageBackground, StyleSheet, ScrollView} from "react-native";
 import Glass from "../../components/Glass";
 import MacroBar from "../../components/MacroBar";
 import DailyCalories from "../../components/DailyCalories";
 import EditNumberModal from "../../components/EditNumberModal";
+import MealBuilderModal from "../../components/MealBuilderModal";
+import MealSelector from "../../components/MealSelector";
+import BarcodeScannerModal from "../../components/BarcodeScannerModal";
+import ScannedFoodResultModal from "../../components/ScannedFoodResultModal";
+import BarcodeScannerSection from "../../components/BarcodeScannerSection";
 import { dailyCaloriesCalculation } from "../../controller/fitness";
 import { useNutrition } from "../../components/provider/NutritionProvider";
+import { useMeal, Meal } from "../../components/provider/MealProvider";
 
 export default function Diet() {
   const {
@@ -19,8 +25,14 @@ export default function Diet() {
     userInfo,
   } = useNutrition();
 
+  const { meals, addMeal, removeMeal } = useMeal();
+
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState(0);
+  const [mealBuilderVisible, setMealBuilderVisible] = useState(false);
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [scannedFood, setScannedFood] = useState<any>(null);
+  const [resultModalVisible, setResultModalVisible] = useState(false);
 
   const openEdit = (field: string, value: number) => {
     setEditField(field);
@@ -41,6 +53,43 @@ export default function Diet() {
       ? calorieGoal
       : dailyCaloriesCalculation(userInfo);
 
+  const handleMealSelect = (meal: Meal) => {
+    // Add meal's macros to daily totals
+    setCalories(calories + meal.calories);
+    setMacros({
+      ...macros,
+      protein: macros.protein + meal.protein,
+      carbs: macros.carbs + meal.carbs,
+      fats: macros.fats + meal.fats,
+    });
+  };
+
+  const handleSaveMeal = (meal: Meal) => {
+    addMeal(meal);
+  };
+
+  const handleFoodScanned = (food: any) => {
+    setScannedFood(food);
+    setScannerVisible(false);
+    setResultModalVisible(true);
+  };
+
+  const handleConsumeScannedFood = (food: any) => {
+    setCalories(calories + food.calories);
+    setMacros({
+      ...macros,
+      protein: macros.protein + food.protein,
+      carbs: macros.carbs + food.carbs,
+      fats: macros.fats + food.fats,
+    });
+    setResultModalVisible(false);
+  };
+
+  const handleDiscardScannedFood = () => {
+    setResultModalVisible(false);
+    setScannerVisible(true);
+  };
+
   return (
     <ImageBackground
       source={require("../../assets/wallpaper.png")}
@@ -48,7 +97,11 @@ export default function Diet() {
       resizeMode="cover"
     >
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <Text style={styles.title}>Diet</Text>
 
           <TouchableOpacity onPress={() => openEdit("calories", calories)}>
@@ -103,6 +156,15 @@ export default function Diet() {
             </TouchableOpacity>
           </View>
 
+          <BarcodeScannerSection onOpenScanner={() => setScannerVisible(true)} />
+
+          <MealSelector
+            meals={meals}
+            onSelectMeal={handleMealSelect}
+            onDeleteMeal={removeMeal}
+            onCreateNew={() => setMealBuilderVisible(true)}
+          />
+
           <EditNumberModal
             visible={!!editField}
             value={editValue}
@@ -110,7 +172,26 @@ export default function Diet() {
             onClose={() => setEditField(null)}
             onSave={saveEdit}
           />
-        </View>
+
+          <MealBuilderModal
+            visible={mealBuilderVisible}
+            onClose={() => setMealBuilderVisible(false)}
+            onSave={handleSaveMeal}
+          />
+
+          <BarcodeScannerModal
+            visible={scannerVisible}
+            onClose={() => setScannerVisible(false)}
+            onFoodScanned={handleFoodScanned}
+          />
+
+          <ScannedFoodResultModal
+            visible={resultModalVisible}
+            food={scannedFood}
+            onConsume={handleConsumeScannedFood}
+            onDiscard={handleDiscardScannedFood}
+          />
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -123,9 +204,13 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  container: {
+  scrollView: {
     flex: 1,
-    padding: 20,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
     gap: 20,
   },
   title: {

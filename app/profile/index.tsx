@@ -8,15 +8,34 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Modal,
+  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import Glass from "../../components/Glass";
 import EditNumberModal from "../../components/EditNumberModal";
 import { useNutrition } from "../../components/provider/NutritionProvider";
 import { useWallpaper } from "../../components/provider/WallpaperProvider";
 
+const ACTIVITY_LEVELS = [
+  { id: "sedentary", label: "Sedentary (little exercise)", value: 1.2 },
+  { id: "light", label: "Light (1-3 days/week)", value: 1.375 },
+  { id: "moderate", label: "Moderate (3-5 days/week)", value: 1.55 },
+  { id: "very", label: "Very Active (6-7 days/week)", value: 1.725 },
+  { id: "extra", label: "Extra Active (physical job)", value: 1.9 },
+];
+
+const OCCUPATIONS = [
+  { id: "sedentary-job", label: "Office Worker", activityMultiplier: 1.2 },
+  { id: "light-job", label: "Teacher/Nurse", activityMultiplier: 1.4 },
+  { id: "moderate-job", label: "Construction/Manual Labor", activityMultiplier: 1.6 },
+  { id: "active-job", label: "Athlete/Sports Professional", activityMultiplier: 1.9 },
+];
+
 export default function Profile() {
+  const router = useRouter();
   const {
     macroGoals,
     setMacroGoals,
@@ -31,6 +50,8 @@ export default function Profile() {
   const [profile, setProfile] = useState(userInfo);
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState(0);
+  const [activityModalVisible, setActivityModalVisible] = useState(false);
+  const [occupationModalVisible, setOccupationModalVisible] = useState(false);
 
   const openEdit = (field: string, value: number) => {
     setEditField(field);
@@ -83,6 +104,16 @@ export default function Profile() {
   const estimatedGoalCalories =
     macroGoals.carbs * 4 + macroGoals.protein * 4 + macroGoals.fats * 9;
 
+  const getActivityLabel = (value: number) => {
+    const activity = ACTIVITY_LEVELS.find((a) => Math.abs(a.value - value) < 0.01);
+    return activity?.label || `${value}`;
+  };
+
+  const getOccupationLabel = (multiplier: number) => {
+    const occupation = OCCUPATIONS.find((o) => Math.abs(o.activityMultiplier - multiplier) < 0.01);
+    return occupation?.label || "Not selected";
+  };
+
   return (
     <ImageBackground
       source={require("../../assets/wallpaper.png")}
@@ -90,8 +121,14 @@ export default function Profile() {
       resizeMode="cover"
     >
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.backButton}>← Back</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>Profile</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }}>
 
           <Glass style={{ padding: 20, borderRadius: 25 }}>
             <Text style={styles.header}>Personal Information</Text>
@@ -127,19 +164,33 @@ export default function Profile() {
               value={String(profile.height ?? "")}
               onChangeText={(t) => setProfile({ ...profile, height: t })}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Activity (1.2 - 1.9)"
-              placeholderTextColor="#aaa"
-              keyboardType="numeric"
-              value={String(profile.activity ?? "")}
-              onChangeText={(t) => setProfile({ ...profile, activity: t })}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Occupation"
-              placeholderTextColor="#aaa"
-            />
+
+            <Text style={{ color: "white", fontSize: 14, marginTop: 12, marginBottom: 8 }}>
+              Activity Level
+            </Text>
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => setActivityModalVisible(true)}
+            >
+              <Text style={styles.selectorButtonText}>
+                {getActivityLabel(Number(profile.activity) || 1.2)}
+              </Text>
+              <Text style={{ color: "#60ffd0", fontSize: 18 }}>{">"}</Text>
+            </TouchableOpacity>
+
+            <Text style={{ color: "white", fontSize: 14, marginTop: 12, marginBottom: 8 }}>
+              Occupation
+            </Text>
+            <TouchableOpacity
+              style={styles.selectorButton}
+              onPress={() => setOccupationModalVisible(true)}
+            >
+              <Text style={styles.selectorButtonText}>
+                {getOccupationLabel(Number(profile.activity) || 1.2)}
+              </Text>
+              <Text style={{ color: "#60ffd0", fontSize: 18 }}>{">"}</Text>
+            </TouchableOpacity>
+
             <TextInput
               style={styles.input}
               placeholder="Illnesses"
@@ -232,6 +283,81 @@ export default function Profile() {
             onClose={() => setEditField(null)}
             onSave={saveEdit}
           />
+
+          <Modal visible={activityModalVisible} transparent animationType="fade">
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Select Activity Level</Text>
+                <FlatList
+                  scrollEnabled={false}
+                  data={ACTIVITY_LEVELS}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.modalOption,
+                        Number(profile.activity) === item.value &&
+                          styles.modalOptionSelected,
+                      ]}
+                      onPress={() => {
+                        setProfile({ ...profile, activity: String(item.value) });
+                        setActivityModalVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          Number(profile.activity) === item.value &&
+                            styles.modalOptionTextSelected,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+          </Modal>
+
+          <Modal visible={occupationModalVisible} transparent animationType="fade">
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Select Occupation</Text>
+                <FlatList
+                  scrollEnabled={false}
+                  data={OCCUPATIONS}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.modalOption,
+                        Number(profile.activity) === item.activityMultiplier &&
+                          styles.modalOptionSelected,
+                      ]}
+                      onPress={() => {
+                        setProfile({
+                          ...profile,
+                          activity: String(item.activityMultiplier),
+                        });
+                        setOccupationModalVisible(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.modalOptionText,
+                          Number(profile.activity) === item.activityMultiplier &&
+                            styles.modalOptionTextSelected,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
+          </Modal>
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>
@@ -239,6 +365,18 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+  },
+  backButton: {
+    color: "#60ffd0",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   title: {
     color: "white",
     fontSize: 32,
@@ -255,6 +393,19 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     marginVertical: 6,
+    color: "white",
+    fontSize: 16,
+  },
+  selectorButton: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    padding: 14,
+    borderRadius: 12,
+    marginVertical: 6,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  selectorButtonText: {
     color: "white",
     fontSize: 16,
   },
@@ -326,5 +477,45 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     fontSize: 20,
     marginLeft: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#1a1a2e",
+    borderRadius: 20,
+    padding: 20,
+    width: "85%",
+    maxHeight: "70%",
+  },
+  modalTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  modalOption: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  modalOptionSelected: {
+    backgroundColor: "rgba(96,255,208,0.3)",
+    borderWidth: 2,
+    borderColor: "#60ffd0",
+  },
+  modalOptionText: {
+    color: "white",
+    fontSize: 16,
+  },
+  modalOptionTextSelected: {
+    color: "#60ffd0",
+    fontWeight: "600",
   },
 });

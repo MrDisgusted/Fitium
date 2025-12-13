@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  ImageBackground,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
@@ -18,6 +17,7 @@ import Glass from "../../components/Glass";
 import EditNumberModal from "../../components/EditNumberModal";
 import { useNutrition } from "../../components/provider/NutritionProvider";
 import { useWallpaper } from "../../components/provider/WallpaperProvider";
+import { usePro } from "../../components/provider/ProProvider";
 
 const ACTIVITY_LEVELS = [
   { id: "sedentary", label: "Sedentary (little exercise)", value: 1.2 },
@@ -46,6 +46,7 @@ export default function Profile() {
   } = useNutrition();
 
   const { setWallpaper } = useWallpaper();
+  const { isPro } = usePro();
 
   const [profile, setProfile] = useState(userInfo);
   const [editField, setEditField] = useState<string | null>(null);
@@ -68,6 +69,14 @@ export default function Profile() {
   };
 
   const pickWallpaper = async () => {
+    if (!isPro) {
+      Alert.alert(
+        "Pro Feature",
+        "Custom wallpapers are a Pro feature. Upgrade to Pro to unlock it!",
+        [{ text: "OK" }]
+      );
+      return;
+    }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -87,6 +96,14 @@ export default function Profile() {
   };
 
   const resetWallpaper = async () => {
+    if (!isPro) {
+      Alert.alert(
+        "Pro Feature",
+        "Custom wallpapers are a Pro feature. Upgrade to Pro to unlock it!",
+        [{ text: "OK" }]
+      );
+      return;
+    }
     await setWallpaper(null);
     Alert.alert("Success", "Wallpaper reset to default!");
   };
@@ -115,13 +132,8 @@ export default function Profile() {
   };
 
   return (
-    <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.headerContainer}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <View style={styles.headerContainer}>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
@@ -208,13 +220,31 @@ export default function Profile() {
           </Glass>
 
           <Glass style={{ padding: 20, borderRadius: 25 }}>
-            <Text style={styles.header}>Wallpaper</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 15 }}>
+              <Text style={styles.header}>Wallpaper</Text>
+              {!isPro && (
+                <View
+                  style={{
+                    backgroundColor: "rgba(255, 100, 100, 0.3)",
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: "rgba(255, 100, 100, 0.5)",
+                  }}
+                >
+                  <Text style={{ color: "rgba(255, 100, 100, 0.8)", fontSize: 10, fontWeight: "600" }}>
+                    PRO
+                  </Text>
+                </View>
+              )}
+            </View>
 
-            <TouchableOpacity style={styles.wallpaperButton} onPress={pickWallpaper}>
-              <Text style={styles.buttonText}>📸 Choose Wallpaper</Text>
+            <TouchableOpacity style={[styles.wallpaperButton, !isPro && { opacity: 0.5 }]} onPress={pickWallpaper} disabled={!isPro}>
+              <Text style={styles.buttonText}>{isPro ? "📸" : "🔒"} {isPro ? "Choose Wallpaper" : "Upgrade to Pro"}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.resetButton} onPress={resetWallpaper}>
+            <TouchableOpacity style={[styles.resetButton, !isPro && { opacity: 0.5 }]} onPress={resetWallpaper} disabled={!isPro}>
               <Text style={styles.resetButtonText}>Reset to Default</Text>
             </TouchableOpacity>
           </Glass>
@@ -359,8 +389,7 @@ export default function Profile() {
             </View>
           </Modal>
         </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
+    </SafeAreaView>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
-  Image,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
@@ -30,49 +29,20 @@ interface BarcodeScannerModalProps {
   onFoodScanned: (food: ScannedFood) => void;
 }
 
-// Simple barcode detection using pattern matching
-const detectBarcodeFromImage = async (base64Image: string): Promise<string | null> => {
-  // This is a placeholder - in production you'd use a real barcode detection library
-  // For now, we'll use QuaggaJS or similar via a web service
-  try {
-    // You can integrate with a barcode detection API like QuaggaJS or use a cloud service
-    // For this implementation, we'll use a simple approach with a web service
-    const formData = new FormData();
-    formData.append("file", {
-      uri: base64Image,
-      type: "image/jpeg",
-      name: "barcode.jpg",
-    } as any);
-
-    // This would connect to a barcode detection service
-    // For now, return null to indicate barcode couldn't be detected
-    return null;
-  } catch (error) {
-    return null;
-  }
-};
-
 export default function BarcodeScannerModal({
   visible,
   onClose,
   onFoodScanned,
 }: BarcodeScannerModalProps) {
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [permission, requestPermission] = useCameraPermissions();
   const [barcodeInput, setBarcodeInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [scanMode, setScanMode] = useState<"input" | "camera" | "upload">("input");
-  const [cameraScanned, setCameraScanned] = useState(false);
+  const [scanMode, setScanMode] = useState<"input" | "camera">("input");
   const cameraRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (visible && scanMode === "camera" && !cameraPermission?.granted) {
-      requestCameraPermission();
-    }
-  }, [visible, scanMode, cameraPermission]);
 
   const handleBarcodeSearch = async (barcode: string) => {
     if (!barcode.trim()) {
-      Alert.alert("Error", "Please enter or scan a barcode");
+      Alert.alert("Error", "Please enter a barcode");
       return;
     }
 
@@ -114,7 +84,7 @@ export default function BarcodeScannerModal({
       } else {
         Alert.alert(
           "Product Not Found",
-          "This barcode is not in our database. Please try another.",
+          "This barcode is not in our database. Try another.",
           [
             {
               text: "Try Again",
@@ -127,7 +97,7 @@ export default function BarcodeScannerModal({
     } catch (error) {
       Alert.alert(
         "Error",
-        "Failed to look up the product. Please check your internet connection.",
+        "Failed to look up the product. Check your internet connection.",
         [
           {
             text: "Try Again",
@@ -139,52 +109,87 @@ export default function BarcodeScannerModal({
     }
   };
 
-  const handlePickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: false,
-        quality: 1,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        setLoading(true);
-        // For image-based barcode detection, you would process the image here
-        // This is a limitation of the current approach - we'll prompt user to enter code
-        Alert.alert(
-          "Barcode Detection",
-          "Please enter the barcode number manually or use the camera scanner.",
-          [{ text: "OK", onPress: () => setLoading(false) }]
-        );
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to pick image");
-    }
-  };
-
   const handleTakePicture = async () => {
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync();
         setLoading(true);
-        // For camera-based barcode detection, you would process the image here
-        Alert.alert(
-          "Barcode Detection",
-          "Please enter the barcode number manually or try scanning again.",
-          [{ text: "OK", onPress: () => {
-            setLoading(false);
-            setCameraScanned(false);
-          }}]
-        );
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.8,
+          skipProcessing: true,
+        });
+
+        // Send image to barcode detection API
+        await detectBarcodeFromImage(photo.uri);
       } catch (error) {
-        Alert.alert("Error", "Failed to take picture");
+        Alert.alert("Error", "Failed to take picture. Try again.");
         setLoading(false);
       }
     }
   };
 
-  if (visible && scanMode === "camera") {
-    if (!cameraPermission?.granted) {
+  const detectBarcodeFromImage = async (imageUri: string) => {
+    try {
+      // Create form data with the image
+      const formData = new FormData();
+      formData.append("image", {
+        uri: imageUri,
+        type: "image/jpeg",
+        name: "barcode.jpg",
+      } as any);
+
+      // Use free barcode detection API
+      const response = await fetch("https://api.barcodepulse.com/scan", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data && data.code) {
+        // Found barcode, now look it up
+        setBarcodeInput(data.code);
+        setScanMode("input");
+        await handleBarcodeSearch(data.code);
+      } else {
+        Alert.alert(
+          "No Barcode Detected",
+          "Could not detect a barcode in the image. Please try:\n• Better lighting\n• Closer to the barcode\n• Or enter manually",
+          [
+            {
+              text: "Try Again",
+              onPress: () => setLoading(false),
+            },
+            {
+              text: "Enter Manually",
+              onPress: () => {
+                setScanMode("input");
+                setLoading(false);
+              },
+            },
+          ]
+        );
+        setLoading(false);
+      }
+    } catch (error) {
+      Alert.alert(
+        "Detection Error",
+        "Could not process the image. Please enter the barcode manually.",
+        [
+          {
+            text: "Enter Manually",
+            onPress: () => {
+              setScanMode("input");
+              setLoading(false);
+            },
+          },
+        ]
+      );
+      setLoading(false);
+    }
+  };
+
+  if (scanMode === "camera") {
+    if (!permission?.granted) {
       return (
         <Modal visible={visible} transparent animationType="slide">
           <View style={styles.overlay}>
@@ -194,9 +199,15 @@ export default function BarcodeScannerModal({
               </Text>
               <TouchableOpacity
                 style={styles.permissionButton}
-                onPress={requestCameraPermission}
+                onPress={requestPermission}
               >
                 <Text style={styles.buttonText}>Grant Permission</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelPermissionButton}
+                onPress={() => setScanMode("input")}
+              >
+                <Text style={styles.cancelText}>Use Manual Entry</Text>
               </TouchableOpacity>
             </Glass>
           </View>
@@ -206,24 +217,40 @@ export default function BarcodeScannerModal({
 
     return (
       <Modal visible={visible} transparent animationType="slide">
-        <CameraView style={styles.camera} ref={cameraRef}>
-          <View style={styles.scannerOverlay}>
-            <View style={styles.scanFrame} />
-            <Text style={styles.scanText}>Position barcode in frame</Text>
+        {loading ? (
+          <View style={styles.loadingOverlay}>
+            <Glass style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#60ffd0" />
+              <Text style={styles.loadingText}>Detecting barcode...</Text>
+            </Glass>
           </View>
-          <TouchableOpacity
-            style={styles.captureButton}
-            onPress={handleTakePicture}
-          >
-            <Text style={styles.captureText}>Capture</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setScanMode("input")}
-          >
-            <Text style={styles.closeButtonText}>Back</Text>
-          </TouchableOpacity>
-        </CameraView>
+        ) : (
+          <>
+            <CameraView style={styles.camera} ref={cameraRef}>
+              <View style={styles.cameraOverlay}>
+                <View style={styles.scanFrame} />
+                <Text style={styles.scanText}>Position barcode in frame</Text>
+              </View>
+              <View style={styles.controlsContainer}>
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={() => {
+                    setScanMode("input");
+                    setBarcodeInput("");
+                  }}
+                >
+                  <Text style={styles.backButtonText}>← Back</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.captureButton}
+                  onPress={handleTakePicture}
+                >
+                  <Text style={styles.captureText}>📷</Text>
+                </TouchableOpacity>
+              </View>
+            </CameraView>
+          </>
+        )}
       </Modal>
     );
   }
@@ -240,41 +267,31 @@ export default function BarcodeScannerModal({
           ) : (
             <>
               <Glass style={styles.contentSection}>
-                <Text style={styles.title}>Scan Food Barcode</Text>
+                <Text style={styles.title}>Scan Barcode</Text>
 
-                {scanMode === "input" ? (
-                  <>
-                    <Text style={styles.label}>Barcode Number</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Enter or scan barcode..."
-                      placeholderTextColor="#999"
-                      value={barcodeInput}
-                      onChangeText={setBarcodeInput}
-                      keyboardType="number-pad"
-                    />
+                <Text style={styles.label}>Barcode Number</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter barcode..."
+                  placeholderTextColor="#999"
+                  value={barcodeInput}
+                  onChangeText={setBarcodeInput}
+                  keyboardType="number-pad"
+                />
 
-                    <Text style={styles.info}>
-                      You can manually type a barcode, use your camera to scan, or upload an image.
-                    </Text>
+                <Text style={styles.info}>
+                  Enter the barcode or use your camera to scan it automatically.
+                </Text>
 
-                    <View style={styles.modeButtonsContainer}>
-                      <TouchableOpacity
-                        style={styles.modeButton}
-                        onPress={() => setScanMode("camera")}
-                      >
-                        <Text style={styles.modeButtonText}>📷 Camera</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.modeButton}
-                        onPress={handlePickImage}
-                      >
-                        <Text style={styles.modeButtonText}>🖼️ Upload</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                ) : null}
+                <TouchableOpacity
+                  style={styles.cameraButton}
+                  onPress={() => {
+                    setScanMode("camera");
+                    setBarcodeInput("");
+                  }}
+                >
+                  <Text style={styles.cameraButtonText}>📷 Open Camera</Text>
+                </TouchableOpacity>
               </Glass>
 
               <View style={styles.buttonContainer}>
@@ -285,11 +302,15 @@ export default function BarcodeScannerModal({
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.searchButton]}
+                  style={[
+                    styles.button,
+                    styles.searchButton,
+                    !barcodeInput.trim() && styles.disabledButton,
+                  ]}
                   onPress={() => handleBarcodeSearch(barcodeInput)}
                   disabled={!barcodeInput.trim()}
                 >
-                  <Text style={styles.buttonText}>Search Product</Text>
+                  <Text style={styles.buttonText}>Search</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -344,23 +365,17 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: 12,
     lineHeight: 18,
-    marginTop: 8,
-    marginBottom: 15,
+    marginBottom: 12,
   },
-  modeButtonsContainer: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  modeButton: {
-    flex: 1,
+  cameraButton: {
     paddingVertical: 12,
     borderRadius: 10,
+    alignItems: "center",
     backgroundColor: "rgba(96, 255, 208, 0.2)",
     borderWidth: 1,
     borderColor: "#60ffd0",
-    alignItems: "center",
   },
-  modeButtonText: {
+  cameraButtonText: {
     color: "#60ffd0",
     fontSize: 14,
     fontWeight: "600",
@@ -391,6 +406,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#60ffd0",
   },
+  disabledButton: {
+    opacity: 0.5,
+  },
   buttonText: {
     color: "white",
     fontSize: 16,
@@ -411,21 +429,30 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(96, 255, 208, 0.2)",
     borderWidth: 1,
     borderColor: "#60ffd0",
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 10,
+  },
+  cancelPermissionButton: {
+    paddingHorizontal: 30,
+    paddingVertical: 10,
+  },
+  cancelText: {
+    color: "#999",
+    fontSize: 14,
   },
   camera: {
     flex: 1,
   },
-  scannerOverlay: {
+  cameraOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   scanFrame: {
-    width: 280,
-    height: 150,
+    width: 300,
+    height: 120,
     borderWidth: 3,
     borderColor: "#60ffd0",
     borderRadius: 15,
@@ -437,37 +464,59 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: "center",
   },
+  controlsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    gap: 15,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingVertical: 30,
+  },
   captureButton: {
-    position: "absolute",
-    bottom: 100,
-    alignSelf: "center",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: "#60ffd0",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 5,
   },
   captureText: {
-    color: "#1a1a2e",
-    fontSize: 12,
-    fontWeight: "bold",
+    fontSize: 32,
   },
-  closeButton: {
-    position: "absolute",
-    bottom: 40,
-    left: 20,
-    right: 20,
+  backButton: {
     backgroundColor: "rgba(255,255,255,0.2)",
     borderWidth: 1,
     borderColor: "#60ffd0",
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     alignItems: "center",
   },
-  closeButtonText: {
+  backButtonText: {
     color: "#60ffd0",
     fontSize: 16,
     fontWeight: "600",
+  },
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingContainer: {
+    padding: 30,
+    borderRadius: 20,
+    alignItems: "center",
+    gap: 15,
   },
 });

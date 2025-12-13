@@ -1,11 +1,11 @@
 import { Tabs } from "expo-router";
 import GlassBar from "../../components/GlassBar";
 import { icons } from "../../constants/icons";
-import { ImageBackground } from "react-native";
 import { NutritionProvider } from "../../components/provider/NutritionProvider";
 import { WorkoutProvider } from "../../components/provider/WorkoutProvider";
 import { useWallpaper } from "../../components/provider/WallpaperProvider";
 import { useState } from "react";
+import { ImageBackground } from "react-native";
 
 const tabNames = ["workouts", "activities", "index", "diet", "supplements"];
 const tabIcons = {
@@ -17,18 +17,19 @@ const tabIcons = {
 };
 
 export default function TabsLayout() {
-  const { wallpaper } = useWallpaper();
   const [currentTab, setCurrentTab] = useState(2); // Start at index (position 2)
+  const { wallpaper } = useWallpaper();
 
   return (
-    <WorkoutProvider>
-      <NutritionProvider>
-        <ImageBackground
-          source={wallpaper}
-          style={{ flex: 1 }}
-          resizeMode="cover"
-        >
+    <ImageBackground
+      source={wallpaper}
+      style={{ flex: 1 }}
+      resizeMode="cover"
+    >
+      <WorkoutProvider>
+        <NutritionProvider>
           <Tabs
+            initialRouteName="index"
             tabBar={(props) => <GlassBar {...props} />}
             screenOptions={{
               headerShown: false,
@@ -51,8 +52,8 @@ export default function TabsLayout() {
             <Tabs.Screen name="diet" options={{ tabBarIcon: tabIcons.diet }} />
             <Tabs.Screen name="supplements" options={{ tabBarIcon: tabIcons.supplements }} />
           </Tabs>
-        </ImageBackground>
-      </NutritionProvider>
-    </WorkoutProvider>
+        </NutritionProvider>
+      </WorkoutProvider>
+    </ImageBackground>
   );
 }

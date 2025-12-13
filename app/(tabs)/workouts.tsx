@@ -3,18 +3,20 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
   ScrollView,
+  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import Glass from "../../components/Glass";
 import { useWorkout } from "../../components/provider/WorkoutProvider";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
 import { useRouter } from "expo-router";
 
 export default function Workouts() {
   const router = useRouter();
   const { getTodayWorkout, getTomorrowWorkout, activeSplit } = useWorkout();
+  const { wallpaper } = useWallpaper();
   const [, setRefresh] = useState(0);
 
   // Refresh the page when the tab comes into focus
@@ -33,11 +35,12 @@ export default function Workouts() {
   if (!activeSplit) {
     return (
       <ImageBackground
-        source={require("../../assets/wallpaper.png")}
+        source={wallpaper}
         style={{ flex: 1 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+          <View style={{ flex: 1, padding: 20, gap: 20 }}>
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
             No Workout Split
           </Text>
@@ -70,7 +73,8 @@ export default function Workouts() {
               Workout Planner
             </Text>
           </TouchableOpacity>
-        </SafeAreaView>
+        </View>
+      </SafeAreaView>
       </ImageBackground>
     );
   }
@@ -100,11 +104,11 @@ export default function Workouts() {
 
   return (
     <ImageBackground
-      source={require("../../assets/wallpaper.png")}
+      source={wallpaper}
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20, backgroundColor: 'transparent' }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
             Workouts

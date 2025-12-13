@@ -4,10 +4,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const WallpaperContext = createContext(null);
 
 export function WallpaperProvider({ children }) {
-  const [wallpaper, setWallpaperState] = useState(
-    require("../../assets/wallpaper.png")
-  );
-  const [wallpaperUri, setWallpaperUri] = useState<string | null>(null);
+  const defaultWallpaper = require("../../assets/wallpaper.png");
+  const [wallpaper, setWallpaperState] = useState<any>(defaultWallpaper);
 
   // Load wallpaper from AsyncStorage on mount
   useEffect(() => {
@@ -15,11 +13,13 @@ export function WallpaperProvider({ children }) {
       try {
         const savedUri = await AsyncStorage.getItem("wallpaperUri");
         if (savedUri) {
-          setWallpaperUri(savedUri);
           setWallpaperState({ uri: savedUri });
+        } else {
+          setWallpaperState(defaultWallpaper);
         }
       } catch (error) {
         console.error("Error loading wallpaper:", error);
+        setWallpaperState(defaultWallpaper);
       }
     };
 
@@ -31,13 +31,11 @@ export function WallpaperProvider({ children }) {
       if (imageUri) {
         // Save the URI to AsyncStorage
         await AsyncStorage.setItem("wallpaperUri", imageUri);
-        setWallpaperUri(imageUri);
         setWallpaperState({ uri: imageUri });
       } else {
         // Reset to default
         await AsyncStorage.removeItem("wallpaperUri");
-        setWallpaperUri(null);
-        setWallpaperState(require("../../assets/wallpaper.png"));
+        setWallpaperState(defaultWallpaper);
       }
     } catch (error) {
       console.error("Error saving wallpaper:", error);
@@ -45,7 +43,7 @@ export function WallpaperProvider({ children }) {
   };
 
   return (
-    <WallpaperContext.Provider value={{ wallpaper, setWallpaper, wallpaperUri }}>
+    <WallpaperContext.Provider value={{ wallpaper, setWallpaper }}>
       {children}
     </WallpaperContext.Provider>
   );

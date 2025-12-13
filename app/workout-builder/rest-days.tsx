@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -21,8 +21,8 @@ export default function RestDays() {
   };
 
   return (
-    <ImageBackground source={require("../../assets/wallpaper.png")} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <View style={{ flex: 1, padding: 20, gap: 20 }}>
         <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>Rest Days</Text>
 
         <Glass style={{ padding: 20, borderRadius: 25, gap: 16 }}>
@@ -70,7 +70,7 @@ export default function RestDays() {
         >
           <Text style={{ fontWeight: "700", fontSize: 18 }}>Next</Text>
         </TouchableOpacity>
-      </SafeAreaView>
-    </ImageBackground>
+      </View>
+    </SafeAreaView>
   );
 }

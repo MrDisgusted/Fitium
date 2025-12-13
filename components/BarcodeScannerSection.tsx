@@ -4,8 +4,10 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import Glass from "./Glass";
+import { usePro } from "./provider/ProProvider";
 
 interface BarcodeScannerSectionProps {
   onOpenScanner: () => void;
@@ -14,16 +16,52 @@ interface BarcodeScannerSectionProps {
 export default function BarcodeScannerSection({
   onOpenScanner,
 }: BarcodeScannerSectionProps) {
+  const { isPro } = usePro();
+
+  const handlePress = () => {
+    if (!isPro) {
+      Alert.alert(
+        "Pro Feature",
+        "Barcode scanner is a Pro feature. Upgrade to Pro to unlock it!",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+    onOpenScanner();
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Scan Food Barcode</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text style={styles.title}>Scan Food Barcode</Text>
+        {!isPro && (
+          <View
+            style={{
+              backgroundColor: "rgba(255, 100, 100, 0.3)",
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 4,
+              borderWidth: 1,
+              borderColor: "rgba(255, 100, 100, 0.5)",
+            }}
+          >
+            <Text style={{ color: "rgba(255, 100, 100, 0.8)", fontSize: 10, fontWeight: "600" }}>
+              PRO
+            </Text>
+          </View>
+        )}
+      </View>
 
-      <TouchableOpacity onPress={onOpenScanner}>
-        <Glass style={styles.scanButton}>
-          <Text style={styles.scanIcon}>📱</Text>
-          <Text style={styles.scanText}>Tap to Scan Barcode</Text>
+      <TouchableOpacity onPress={handlePress} disabled={!isPro}>
+        <Glass style={[styles.scanButton, !isPro && styles.disabledButton]}>
+          <Text style={styles.scanIcon}>{isPro ? "📱" : "🔒"}</Text>
+          <Text style={styles.scanText}>
+            {isPro ? "Tap to Enter Barcode" : "Upgrade to Pro"}
+          </Text>
           <Text style={styles.scanSubtext}>
-            Instantly get nutrition info for any packaged food
+            {isPro
+              ? "Type or paste the barcode number from your food package"
+              : "Unlock advanced barcode scanning with Pro"}
           </Text>
         </Glass>
       </TouchableOpacity>
@@ -48,6 +86,10 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 2,
     borderColor: "rgba(96, 255, 208, 0.3)",
+  },
+  disabledButton: {
+    borderColor: "rgba(255, 100, 100, 0.3)",
+    opacity: 0.6,
   },
   scanIcon: {
     fontSize: 40,

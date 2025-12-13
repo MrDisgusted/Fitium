@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
   ScrollView,
   TextInput,
   PanResponder,
@@ -131,12 +130,8 @@ export default function WorkoutBuilder() {
   );
 
   return (
-    <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={{ flex: 1, padding: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <View style={{ flex: 1, padding: 20 }}>
         {renderStepper()}
 
         <ScrollView contentContainerStyle={{ paddingBottom: 40, gap: 20 }}>
@@ -467,8 +462,8 @@ export default function WorkoutBuilder() {
             </Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </ImageBackground>
+      </View>
+    </SafeAreaView>
   );
 }
 

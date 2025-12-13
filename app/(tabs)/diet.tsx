@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {View, Text, TouchableOpacity, ImageBackground, StyleSheet, ScrollView} from "react-native";
+import {View, Text, TouchableOpacity, StyleSheet, ScrollView, ImageBackground} from "react-native";
 import Glass from "../../components/Glass";
 import MacroBar from "../../components/MacroBar";
 import DailyCalories from "../../components/DailyCalories";
@@ -10,8 +10,9 @@ import MealSelector from "../../components/MealSelector";
 import BarcodeScannerModal from "../../components/BarcodeScannerModal";
 import ScannedFoodResultModal from "../../components/ScannedFoodResultModal";
 import BarcodeScannerSection from "../../components/BarcodeScannerSection";
-import { dailyCaloriesCalculation } from "../../controller/fitness";
 import { useNutrition } from "../../components/provider/NutritionProvider";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
+import { dailyCaloriesCalculation } from "../../controller/fitness";
 import { useMeal, Meal } from "../../components/provider/MealProvider";
 
 export default function Diet() {
@@ -26,6 +27,7 @@ export default function Diet() {
   } = useNutrition();
 
   const { meals, addMeal, removeMeal } = useMeal();
+  const { wallpaper } = useWallpaper();
 
   const [editField, setEditField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState(0);
@@ -92,11 +94,11 @@ export default function Diet() {
 
   return (
     <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      style={styles.background}
+      source={wallpaper}
+      style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
         <ScrollView 
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -192,8 +194,8 @@ export default function Diet() {
             onDiscard={handleDiscardScannedFood}
           />
         </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
+        </SafeAreaView>
+      </ImageBackground>
   );
 }
 
@@ -206,12 +208,14 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,
     gap: 20,
+    backgroundColor: 'transparent',
   },
   title: {
     color: "white",

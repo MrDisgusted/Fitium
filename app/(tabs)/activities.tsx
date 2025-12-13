@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { View, Text, ImageBackground, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ImageBackground } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
 import { Pedometer } from "expo-sensors";
 import { useNutrition } from "../../components/provider/NutritionProvider";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
 
 type TodoItem = { id: string; text: string; completed: boolean };
 
@@ -14,6 +15,7 @@ export default function Activities() {
   const [newTodo, setNewTodo] = useState("");
 
   const { setCalories } = useNutrition();
+  const { wallpaper } = useWallpaper();
 
   useEffect(() => {
     Pedometer.isAvailableAsync().then(setIsAvailable);
@@ -48,88 +50,88 @@ export default function Activities() {
 
   return (
     <ImageBackground
-      source={require("../../assets/wallpaper.png")}
+      source={wallpaper}
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1, padding: 20, gap: 20 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+        <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={{ paddingBottom: 20, padding: 20, gap: 20, backgroundColor: 'transparent' }}>
+          <View style={{ padding: 20, gap: 20, backgroundColor: 'transparent' }}>
 
-          <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
-            Activities
-          </Text>
+              <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
+                Activities
+              </Text>
 
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <Glass style={{ flex: 1, padding: 20, borderRadius: 20, height: 150 }}>
-              <Text style={{ color: "white", fontSize: 18 }}>Steps</Text>
-              <Text style={{ color: "white", fontSize: 40, fontWeight: "700", marginTop: 20 }}>
-                {isAvailable ? steps : "N/A"}
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <Glass style={{ flex: 1, padding: 20, borderRadius: 20, height: 150 }}>
+                <Text style={{ color: "white", fontSize: 18 }}>Steps</Text>
+                <Text style={{ color: "white", fontSize: 40, fontWeight: "700", marginTop: 20 }}>
+                  {isAvailable ? steps : "N/A"}
+                </Text>
+              </Glass>
+
+              <Glass style={{ flex: 1, padding: 20, borderRadius: 20, height: 150 }}>
+                <Text style={{ color: "white", fontSize: 18 }}>Cardio</Text>
+
+                <TouchableOpacity
+                  style={{
+                    marginTop: "auto",
+                    backgroundColor: "white",
+                    paddingVertical: 8,
+                    borderRadius: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ fontWeight: "700" }}>Start Cardio</Text>
+                </TouchableOpacity>
+              </Glass>
+            </View>
+
+            <Glass style={{ padding: 20, borderRadius: 20 }}>
+              <Text style={{ color: "white", fontSize: 18 }}>
+                Estimated Calories Burned
+              </Text>
+
+              <Text style={{ marginTop: 10, fontSize: 24, color: "white", fontWeight: "bold" }}>
+                {caloriesBurned} kcal
               </Text>
             </Glass>
 
-            <Glass style={{ flex: 1, padding: 20, borderRadius: 20, height: 150 }}>
-              <Text style={{ color: "white", fontSize: 18 }}>Cardio</Text>
+            <Glass style={{ padding: 20, borderRadius: 20 }}>
+              <Text style={{ color: "white", fontSize: 18, marginBottom: 15, fontWeight: "600" }}>Plans</Text>
 
-              <TouchableOpacity
-                style={{
-                  marginTop: "auto",
-                  backgroundColor: "white",
-                  paddingVertical: 8,
-                  borderRadius: 10,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ fontWeight: "700" }}>Start Cardio</Text>
-              </TouchableOpacity>
-            </Glass>
-          </View>
+              <View style={{ flexDirection: "row", gap: 10, marginBottom: 15 }}>
+                <TextInput
+                  placeholder="Add a plan..."
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={newTodo}
+                  onChangeText={setNewTodo}
+                  style={{
+                    flex: 1,
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                    color: "white",
+                    fontSize: 14,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "rgba(255,255,255,0.2)",
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={addTodo}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                    borderRadius: 8,
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "600" }}>Add</Text>
+                </TouchableOpacity>
+              </View>
 
-          <Glass style={{ padding: 20, borderRadius: 20 }}>
-            <Text style={{ color: "white", fontSize: 18 }}>
-              Estimated Calories Burned
-            </Text>
-
-            <Text style={{ marginTop: 10, fontSize: 24, color: "white", fontWeight: "bold" }}>
-              {caloriesBurned} kcal
-            </Text>
-          </Glass>
-
-          <Glass style={{ padding: 20, borderRadius: 20, flex: 1 }}>
-            <Text style={{ color: "white", fontSize: 18, marginBottom: 15, fontWeight: "600" }}>Plans</Text>
-
-            <View style={{ flexDirection: "row", gap: 10, marginBottom: 15 }}>
-              <TextInput
-                placeholder="Add a plan..."
-                placeholderTextColor="rgba(255,255,255,0.5)"
-                value={newTodo}
-                onChangeText={setNewTodo}
-                style={{
-                  flex: 1,
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  color: "white",
-                  fontSize: 14,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: "rgba(255,255,255,0.2)",
-                }}
-              />
-              <TouchableOpacity
-                onPress={addTodo}
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                  paddingHorizontal: 16,
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  justifyContent: "center",
-                }}
-              >
-                <Text style={{ color: "white", fontWeight: "600" }}>Add</Text>
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={{ flex: 1 }}>
               {todos.length === 0 ? (
                 <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, textAlign: "center", marginTop: 20 }}>
                   No plans yet. Add one to get started!
@@ -180,11 +182,11 @@ export default function Activities() {
                   </View>
                 ))
               )}
-            </ScrollView>
-          </Glass>
+            </Glass>
 
         </View>
-      </SafeAreaView>
+      </ScrollView>
+    </SafeAreaView>
     </ImageBackground>
   );
 }

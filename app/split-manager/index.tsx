@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
   ScrollView,
   Alert,
 } from "react-native";
@@ -36,12 +35,8 @@ export default function SplitManager() {
   };
 
   return (
-    <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <View style={{ flex: 1, padding: 20, gap: 20 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
             My Splits
@@ -150,7 +145,7 @@ export default function SplitManager() {
             Create New Split
           </Text>
         </TouchableOpacity>
-      </SafeAreaView>
-    </ImageBackground>
+      </View>
+    </SafeAreaView>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
 import { useRouter } from "expo-router";
@@ -11,12 +11,8 @@ export default function ChooseDays() {
   const options = [1, 2, 3, 4, 5, 6, 7];
 
   return (
-    <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <View style={{ flex: 1, padding: 20, gap: 20 }}>
         <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
           Create Workout Split
         </Text>
@@ -58,7 +54,7 @@ export default function ChooseDays() {
         >
           <Text style={{ fontSize: 18, fontWeight: "700" }}>Next</Text>
         </TouchableOpacity>
-      </SafeAreaView>
-    </ImageBackground>
+      </View>
+    </SafeAreaView>
   );
 }

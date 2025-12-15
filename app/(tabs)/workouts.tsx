@@ -239,7 +239,7 @@ export default function Workouts() {
                         fontWeight: "600",
                       }}
                     >
-                      {appliedOverloads.includes(ex.name) ? "✓ Overload Applied" : `+${ex.increase || 0}kg Overload`}
+                      {appliedOverloads.includes(ex.name) ? "Overload Applied" : `+${ex.increase || 0}kg Overload`}
                     </Text>
                   </TouchableOpacity>
 

@@ -46,7 +46,7 @@ export default function Profile() {
   } = useNutrition();
 
   const { setWallpaper } = useWallpaper();
-  const { isPro } = usePro();
+  const { isPro, expirationDate, cancelSubscription } = usePro();
 
   const [profile, setProfile] = useState(userInfo);
   const [editField, setEditField] = useState<string | null>(null);
@@ -129,6 +129,37 @@ export default function Profile() {
   const getOccupationLabel = (multiplier: number) => {
     const occupation = OCCUPATIONS.find((o) => Math.abs(o.activityMultiplier - multiplier) < 0.01);
     return occupation?.label || "Not selected";
+  };
+
+  const handleCancelSubscription = () => {
+    Alert.alert(
+      "Cancel Subscription",
+      "Are you sure you want to cancel your Pro subscription? You will lose access to Pro features.",
+      [
+        {
+          text: "Keep Subscription",
+          onPress: () => {},
+          style: "cancel",
+        },
+        {
+          text: "Cancel Subscription",
+          onPress: async () => {
+            await cancelSubscription();
+            Alert.alert("Success", "Your Pro subscription has been cancelled.");
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
+
+  const formatExpirationDate = (date: Date | null) => {
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
@@ -248,6 +279,56 @@ export default function Profile() {
               <Text style={styles.resetButtonText}>Reset to Default</Text>
             </TouchableOpacity>
           </Glass>
+
+          {isPro && (
+            <Glass style={{ padding: 20, borderRadius: 25 }}>
+              <Text style={styles.header}>Pro Subscription</Text>
+              
+              <View style={{ marginBottom: 15, gap: 8 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Text style={{ color: "white", fontSize: 14 }}>Status</Text>
+                  <View
+                    style={{
+                      backgroundColor: "rgba(96, 255, 208, 0.3)",
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 6,
+                      borderWidth: 1,
+                      borderColor: "#60ffd0",
+                    }}
+                  >
+                    <Text style={{ color: "#60ffd0", fontSize: 12, fontWeight: "600" }}>
+                      ✓ Active
+                    </Text>
+                  </View>
+                </View>
+
+                {expirationDate && (
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ color: "white", fontSize: 14 }}>Expires</Text>
+                    <Text style={{ color: "#60ffd0", fontSize: 14, fontWeight: "600" }}>
+                      {formatExpirationDate(expirationDate)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <TouchableOpacity
+                style={{
+                  padding: 12,
+                  backgroundColor: "rgba(255, 100, 100, 0.2)",
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 100, 100, 0.4)",
+                }}
+                onPress={handleCancelSubscription}
+              >
+                <Text style={{ color: "rgba(255, 100, 100, 0.8)", textAlign: "center", fontSize: 16, fontWeight: "600" }}>
+                  Cancel Subscription
+                </Text>
+              </TouchableOpacity>
+            </Glass>
+          )}
 
           <Glass style={{ padding: 20, borderRadius: 25 }}>
             <Text style={styles.header}>Nutrition Goals</Text>

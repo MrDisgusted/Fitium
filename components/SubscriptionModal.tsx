@@ -91,6 +91,14 @@ export default function SubscriptionModal({
     setTimeout(() => {
       // In a real app, you would send card details to a payment processor here
       // For now, we're making it free, so just complete the subscription
+      const expirationDate = new Date();
+      expirationDate.setMonth(expirationDate.getMonth() + selectedMonths);
+      const formattedDate = expirationDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+
       console.log("Payment processed:", {
         cardName,
         cardNumber: cardNumber.slice(-4),
@@ -98,7 +106,7 @@ export default function SubscriptionModal({
         months: selectedMonths,
       });
 
-      Alert.alert("Success!", `You're now Pro for ${selectedMonths} month(s)!`, [
+      Alert.alert("Success!", `You're now Pro for ${selectedMonths} month(s)!\n\nExpires: ${formattedDate}`, [
         {
           text: "OK",
           onPress: () => {

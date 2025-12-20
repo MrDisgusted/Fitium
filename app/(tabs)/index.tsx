@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import Glass from "../../components/Glass";
 import Calendar from "../../components/Calendar";
 import MacroBar from "../../components/MacroBar";
+import HydrationBar from "../../components/HydrationBar";
 import DailyCalories from "../../components/DailyCalories";
 import { useNutrition } from "../../components/provider/NutritionProvider";
 import { usePro } from "../../components/provider/ProProvider";
@@ -13,7 +14,7 @@ import SubscriptionModal from "../../components/SubscriptionModal";
 import { useState } from "react";
 
 export default function Index() {
-  const { macros, setMacros, calories, macroGoals } = useNutrition();
+  const { macros, setMacros, calories, macroGoals, hydration, hydrationGoal } = useNutrition();
   const { isPro, setPro } = usePro();
   const { wallpaper } = useWallpaper();
   const [showBenefits, setShowBenefits] = useState(false);
@@ -87,8 +88,8 @@ export default function Index() {
             <Calendar bubbleSize={50} dimOpacity={1} />
           </Glass>
 
-          <Glass style={{ padding: 10, borderRadius: 30 }}>
-            <View style={{ marginTop: 20 }}>
+          <Glass style={{ padding: 7, borderRadius: 30 }}>
+            <View style={{ marginTop: 10 }}>
               <MacroBar
                 label="Carbs"
                 value={macros.carbs}
@@ -110,8 +111,12 @@ export default function Index() {
             </View>
           </Glass>
 
-          <Glass style={{ padding: 10, borderRadius: 30 }}>
+          <Glass style={{ padding: 7, borderRadius: 30 }}>
             <DailyCalories calories={calories} />
+          </Glass>
+
+          <Glass style={{ padding: 7, borderRadius: 30 }}>
+            <HydrationBar value={hydration} goal={hydrationGoal} />
           </Glass>
 
           <ProBenefitsModal

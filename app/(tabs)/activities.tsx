@@ -66,9 +66,8 @@ export default function Activities() {
       resizeMode="cover"
     >
       <BlurView intensity={activityTrackerVisible ? 80 : 0} style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
-          <ScrollView style={{ flex: 1, backgroundColor: 'transparent' }} contentContainerStyle={{ paddingBottom: 20, padding: 20, gap: 20, backgroundColor: 'transparent' }}>
-          <View style={{ padding: 20, gap: 20, backgroundColor: 'transparent' }}>
+        <SafeAreaView style={{ flex: 1, padding: 20, gap: 20, backgroundColor: 'transparent' }}>
+          <ScrollView contentContainerStyle={{ gap: 14 }}>
 
               <Text style={{ fontSize: 32, color: "white", fontWeight: "bold" }}>
                 Activities
@@ -211,9 +210,8 @@ export default function Activities() {
               )}
             </Glass>
 
-        </View>
-      </ScrollView>
-      </SafeAreaView>
+          </ScrollView>
+        </SafeAreaView>
       </BlurView>
 
       <ActivityTrackerModal

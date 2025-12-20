@@ -43,6 +43,8 @@ export default function Profile() {
     setCalorieGoal,
     userInfo,
     setUserInfo,
+    hydrationGoal,
+    setHydrationGoal,
   } = useNutrition();
 
   const { setWallpaper } = useWallpaper();
@@ -62,6 +64,8 @@ export default function Profile() {
   const saveEdit = (val: number) => {
     if (editField === "calorieGoal") {
       setCalorieGoal(val);
+    } else if (editField === "hydrationGoal") {
+      setHydrationGoal(val);
     } else {
       setMacroGoals({ ...macroGoals, [editField as keyof typeof macroGoals]: val });
     }
@@ -373,6 +377,17 @@ export default function Profile() {
               <Text style={styles.goalLabel}>Calorie Goal</Text>
               <View style={styles.goalValueContainer}>
                 <Text style={styles.goalValue}>{calorieGoal} kcal</Text>
+                <Text style={styles.arrow}>{">"}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => openEdit("hydrationGoal", hydrationGoal)}
+              style={styles.goalRow}
+            >
+              <Text style={styles.goalLabel}>Hydration Goal</Text>
+              <View style={styles.goalValueContainer}>
+                <Text style={styles.goalValue}>{hydrationGoal} ml</Text>
                 <Text style={styles.arrow}>{">"}</Text>
               </View>
             </TouchableOpacity>

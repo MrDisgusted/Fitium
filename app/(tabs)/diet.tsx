@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {View, Text, TouchableOpacity, StyleSheet, ScrollView, ImageBackground} from "react-native";
 import Glass from "../../components/Glass";
 import MacroBar from "../../components/MacroBar";
+import HydrationBar from "../../components/HydrationBar";
 import DailyCalories from "../../components/DailyCalories";
 import EditNumberModal from "../../components/EditNumberModal";
 import MealBuilderModal from "../../components/MealBuilderModal";
@@ -24,6 +25,9 @@ export default function Diet() {
     macroGoals,
     calorieGoal,
     userInfo,
+    hydration,
+    setHydration,
+    hydrationGoal,
   } = useNutrition();
 
   const { meals, addMeal, removeMeal } = useMeal();
@@ -44,6 +48,8 @@ export default function Diet() {
   const saveEdit = (newVal: number) => {
     if (editField === "calories") {
       setCalories(newVal);
+    } else if (editField === "hydration") {
+      setHydration(newVal);
     } else if (editField && editField in macros) {
       setMacros({ ...macros, [editField]: newVal });
     }
@@ -158,6 +164,49 @@ export default function Diet() {
             </TouchableOpacity>
           </View>
 
+          <Text style={styles.sectionLabel}>Hydration</Text>
+
+          <TouchableOpacity onPress={() => openEdit("hydration", hydration)}>
+            <Glass style={styles.macroCard}>
+              <HydrationBar value={hydration} goal={hydrationGoal} />
+            </Glass>
+          </TouchableOpacity>
+
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TouchableOpacity
+              style={{ flex: 1 }}
+              onPress={() => setHydration(hydration + 100)}
+            >
+              <Glass style={styles.hydrationButton}>
+                <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+                  +100ml
+                </Text>
+              </Glass>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ flex: 1 }}
+              onPress={() => setHydration(hydration + 250)}
+            >
+              <Glass style={styles.hydrationButton}>
+                <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+                  +250ml
+                </Text>
+              </Glass>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ flex: 1 }}
+              onPress={() => setHydration(hydration + 500)}
+            >
+              <Glass style={styles.hydrationButton}>
+                <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+                  +500ml
+                </Text>
+              </Glass>
+            </TouchableOpacity>
+          </View>
+
           <BarcodeScannerSection onOpenScanner={() => setScannerVisible(true)} />
 
           <MealSelector
@@ -243,5 +292,11 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 20,
     marginBottom: 10,
+  },
+  hydrationButton: {
+    padding: 10,
+    borderRadius: 20,
+    alignItems: "center",
+    marginTop: -20,
   },
 });

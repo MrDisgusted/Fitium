@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import Glass from "./Glass";
+import { useNutrition } from "./provider/NutritionProvider";
 
 interface ActivityTrackerModalProps {
   visible: boolean;
@@ -22,6 +23,7 @@ export default function ActivityTrackerModal({
   onClose,
   onSaveActivity,
 }: ActivityTrackerModalProps) {
+  const { userInfo } = useNutrition();
   const [speed, setSpeed] = useState("5"); // km/h
   const [incline, setIncline] = useState("0"); // percentage
   const [isRunning, setIsRunning] = useState(false);
@@ -42,10 +44,34 @@ export default function ActivityTrackerModal({
     const inclineNum = parseFloat(incline) || 0;
     const durationMinutes = duration / 60;
 
-    // Basic formula: calories per minute varies with speed and incline
-    // Average person burns ~5-8 calories per minute walking at 5 km/h
-    const baseCaloriesPerMinute = speedNum * 1.2 + inclineNum * 0.1;
-    return Math.round(baseCaloriesPerMinute * durationMinutes);
+    // Calculate BMR using Mifflin-St Jeor equation
+    let bmr = 0;
+    const weight = userInfo?.weight || 70; // default 70kg
+    const height = userInfo?.height || 175; // default 175cm
+    const age = userInfo?.age || 30; // default 30 years
+    const gender = userInfo?.gender || "male";
+
+    if (gender?.toLowerCase() === "male") {
+      bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+    } else {
+      bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+    }
+
+    // Activity multiplier based on speed (MET - Metabolic Equivalent of Task)
+    // Speed to MET conversion for treadmill:
+    // 3 km/h = 2.8 MET, 5 km/h = 3.5 MET, 8 km/h = 6 MET, 10 km/h = 8 MET
+    let met = 2.8; // baseline walking
+    if (speedNum >= 3 && speedNum < 5) met = 3.5;
+    else if (speedNum >= 5 && speedNum < 8) met = (3.5 + 6) / 2; // ~4.75
+    else if (speedNum >= 8 && speedNum < 10) met = 6;
+    else if (speedNum >= 10) met = 8;
+
+    // Incline adds additional MET (approximately 0.2-0.3 per percent)
+    met += inclineNum * 0.25;
+
+    // Calories burned per minute = (BMR / 1440) * MET * weight factor
+    const caloriesPerMinute = (bmr / 1440) * met;
+    return Math.round(caloriesPerMinute * durationMinutes);
   };
 
   const formatTime = (seconds: number) => {
@@ -83,14 +109,12 @@ export default function ActivityTrackerModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <BlurView intensity={90} style={styles.blurContainer}>
         <View style={styles.overlay}>
-          <Glass style={styles.content}>
+          <View style={styles.content}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-              <Text style={styles.title}>Treadmill Activity</Text>
+              <Text style={styles.title}>Activity Tracker</Text>
 
               {/* Settings Section */}
               <Glass style={styles.settingsSection}>
-                <Text style={styles.sectionTitle}>Settings</Text>
-
                 <View style={styles.settingRow}>
                   <Text style={styles.label}>Speed (km/h)</Text>
                   <TextInput
@@ -120,7 +144,6 @@ export default function ActivityTrackerModal({
 
               {/* Timer Section */}
               <Glass style={styles.timerSection}>
-                <Text style={styles.sectionTitle}>Duration</Text>
                 <Text style={styles.timerDisplay}>{formatTime(duration)}</Text>
 
                 <View style={styles.buttonRow}>
@@ -168,7 +191,7 @@ export default function ActivityTrackerModal({
                 <Text style={[styles.actionButtonText, { color: "black", fontWeight: "700" }]}>Save</Text>
               </TouchableOpacity>
             </View>
-          </Glass>
+          </View>
         </View>
       </BlurView>
     </Modal>
@@ -181,44 +204,41 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     flex: 1,
     justifyContent: "flex-end",
   },
   content: {
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    padding: 20,
-    gap: 15,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    gap: 14,
     maxHeight: "90%",
+    backgroundColor: "rgba(20, 20, 40, 0.95)",
   },
   title: {
     color: "white",
     fontSize: 28,
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 15,
+    marginBottom: 10,
   },
   settingsSection: {
-    padding: 15,
+    padding: 16,
     borderRadius: 20,
-    gap: 10,
+    gap: 12,
   },
   timerSection: {
     padding: 20,
     borderRadius: 20,
     alignItems: "center",
   },
-  sectionTitle: {
-    color: "#60ffd0",
-    fontSize: 16,
-    fontWeight: "700",
-  },
   settingRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 10,
+    gap: 12,
   },
   label: {
     color: "white",
@@ -228,19 +248,19 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: "rgba(96, 255, 208, 0.1)",
+    backgroundColor: "rgba(96, 255, 208, 0.15)",
     color: "#60ffd0",
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
     fontWeight: "600",
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: "rgba(96, 255, 208, 0.3)",
   },
   timerDisplay: {
     color: "#60ffd0",
-    fontSize: 56,
+    fontSize: 52,
     fontWeight: "bold",
     marginVertical: 20,
     letterSpacing: 2,
@@ -252,10 +272,10 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 15,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: "center",
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   startButton: {
     backgroundColor: "rgba(96, 255, 208, 0.2)",
@@ -271,23 +291,23 @@ const styles = StyleSheet.create({
   },
   controlButtonText: {
     color: "white",
-    fontWeight: "700",
+    fontWeight: "600",
     fontSize: 14,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 12,
-    marginTop: 15,
+    gap: 10,
+    marginTop: 10,
   },
   actionButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 15,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: "center",
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   cancelButton: {
-    backgroundColor: "rgba(255,255,255,0.05)",
+    backgroundColor: "rgba(255,255,255,0.1)",
     borderColor: "rgba(255,255,255,0.2)",
   },
   saveButton: {

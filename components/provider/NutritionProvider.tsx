@@ -29,16 +29,21 @@ export function NutritionProvider({ children }) {
     activity: 1.55,
   });
 
+  const [hydration, setHydration] = useState(0); // in ml
+  const [hydrationGoal, setHydrationGoal] = useState(3000); // default 3L
+
   // Load data from AsyncStorage on mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [macrosData, calorieData, goalsData, calorieGoalData, userInfoData] = await Promise.all([
+        const [macrosData, calorieData, goalsData, calorieGoalData, userInfoData, hydrationData, hydrationGoalData] = await Promise.all([
           AsyncStorage.getItem("macros"),
           AsyncStorage.getItem("calories"),
           AsyncStorage.getItem("macroGoals"),
           AsyncStorage.getItem("calorieGoal"),
           AsyncStorage.getItem("userInfo"),
+          AsyncStorage.getItem("hydration"),
+          AsyncStorage.getItem("hydrationGoal"),
         ]);
 
         if (macrosData) setMacros(JSON.parse(macrosData));
@@ -46,6 +51,8 @@ export function NutritionProvider({ children }) {
         if (goalsData) setMacroGoals(JSON.parse(goalsData));
         if (calorieGoalData) setCalorieGoal(JSON.parse(calorieGoalData));
         if (userInfoData) setUserInfo(JSON.parse(userInfoData));
+        if (hydrationData) setHydration(JSON.parse(hydrationData));
+        if (hydrationGoalData) setHydrationGoal(JSON.parse(hydrationGoalData));
       } catch (error) {
         console.error("Error loading nutrition data:", error);
       }
@@ -79,6 +86,16 @@ export function NutritionProvider({ children }) {
     AsyncStorage.setItem("userInfo", JSON.stringify(userInfo));
   }, [userInfo]);
 
+  // Persist hydration whenever it changes
+  useEffect(() => {
+    AsyncStorage.setItem("hydration", JSON.stringify(hydration));
+  }, [hydration]);
+
+  // Persist hydration goal whenever it changes
+  useEffect(() => {
+    AsyncStorage.setItem("hydrationGoal", JSON.stringify(hydrationGoal));
+  }, [hydrationGoal]);
+
   // Update calories based on macros
   useEffect(() => {
     setCalories(caloriesFromMacros(macros));
@@ -97,6 +114,10 @@ export function NutritionProvider({ children }) {
         setCalorieGoal,
         userInfo,
         setUserInfo,
+        hydration,
+        setHydration,
+        hydrationGoal,
+        setHydrationGoal,
       }}
     >
       {children}

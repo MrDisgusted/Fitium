@@ -59,20 +59,6 @@ export default function Workouts() {
               Create Workout Split
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.push("/workout-planner")}
-            style={{
-              backgroundColor: "rgba(255,255,255,0.2)",
-              paddingVertical: 14,
-              borderRadius: 14,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 16, fontWeight: "700" }}>
-              Workout Planner
-            </Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
       </ImageBackground>

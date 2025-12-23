@@ -8,6 +8,8 @@ export function WorkoutProvider({ children }) {
   const [activeSplitId, setActiveSplitId] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lastDate, setLastDate] = useState("");
+  const [streak, setStreak] = useState(0);
+  const [lastWorkoutDate, setLastWorkoutDate] = useState(null);
 
   useEffect(() => {
     load();
@@ -18,11 +20,15 @@ export function WorkoutProvider({ children }) {
     const s2 = await AsyncStorage.getItem("activeSplitId");
     const s3 = await AsyncStorage.getItem("currentIndex");
     const s4 = await AsyncStorage.getItem("lastDate");
+    const s5 = await AsyncStorage.getItem("streak");
+    const s6 = await AsyncStorage.getItem("lastWorkoutDate");
 
     if (s1) setSplits(JSON.parse(s1));
     if (s2) setActiveSplitId(JSON.parse(s2));
     if (s3) setCurrentIndex(JSON.parse(s3));
     if (s4) setLastDate(JSON.parse(s4));
+    if (s5) setStreak(JSON.parse(s5));
+    if (s6) setLastWorkoutDate(JSON.parse(s6));
   };
 
   const persistSplits = async (next) => {
@@ -49,7 +55,11 @@ export function WorkoutProvider({ children }) {
     await persistSplits(next);
     if (id === activeSplitId) {
       setActiveSplitId(null);
+      setCurrentIndex(0);
+      setLastDate("");
       await AsyncStorage.removeItem("activeSplitId");
+      await AsyncStorage.removeItem("currentIndex");
+      await AsyncStorage.removeItem("lastDate");
     }
   };
 
@@ -93,6 +103,48 @@ export function WorkoutProvider({ children }) {
     return { index: next, day };
   };
 
+  const checkAndUpdateStreak = async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    
+    if (!lastWorkoutDate) {
+      // First workout
+      setLastWorkoutDate(today);
+      setStreak(1);
+      await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
+      await AsyncStorage.setItem("streak", JSON.stringify(1));
+      return;
+    }
+
+    const lastDate = new Date(lastWorkoutDate);
+    const currentDate = new Date(today);
+    const dayDiff = Math.floor(
+      (currentDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (dayDiff === 1) {
+      // Consecutive day - increment streak
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      setLastWorkoutDate(today);
+      await AsyncStorage.setItem("streak", JSON.stringify(newStreak));
+      await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
+    } else if (dayDiff > 1) {
+      // Missed days - reset streak
+      setStreak(1);
+      setLastWorkoutDate(today);
+      await AsyncStorage.setItem("streak", JSON.stringify(1));
+      await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
+    }
+    // If dayDiff === 0, it's the same day, don't update
+  };
+
+  const resetStreak = async () => {
+    setStreak(0);
+    setLastWorkoutDate(null);
+    await AsyncStorage.setItem("streak", JSON.stringify(0));
+    await AsyncStorage.removeItem("lastWorkoutDate");
+  };
+
 
   return (
     <WorkoutContext.Provider
@@ -105,6 +157,10 @@ export function WorkoutProvider({ children }) {
         activeSplitId,
         getTodayWorkout,
         getTomorrowWorkout,
+        streak,
+        checkAndUpdateStreak,
+        resetStreak,
+        lastWorkoutDate,
       }}
     >
       {children}

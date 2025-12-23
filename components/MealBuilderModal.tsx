@@ -38,6 +38,9 @@ export default function MealBuilderModal({
   const [customProtein, setCustomProtein] = useState("");
   const [customCarbs, setCustomCarbs] = useState("");
   const [customFats, setCustomFats] = useState("");
+  const [quantityModalVisible, setQuantityModalVisible] = useState(false);
+  const [selectedIngredientForQuantity, setSelectedIngredientForQuantity] = useState<Ingredient | null>(null);
+  const [quantityInput, setQuantityInput] = useState("");
 
   const allIngredients = [...commonIngredients, ...customIngredients];
   const filteredIngredients = allIngredients.filter((ing) =>
@@ -66,15 +69,34 @@ export default function MealBuilderModal({
   };
 
   const handleAddIngredient = (ingredient: Ingredient) => {
-    const existing = selectedIngredients.find((i: any) => i.id === ingredient.id);
-    if (existing) {
-      setSelectedIngredients(
-        selectedIngredients.map((i: any) =>
-          i.id === ingredient.id ? { ...i, quantity: i.quantity + 1 } : i
-        )
-      );
-    } else {
-      setSelectedIngredients([...selectedIngredients, { ...ingredient, quantity: 1 }]);
+    setSelectedIngredientForQuantity(ingredient);
+    setQuantityInput("");
+    setQuantityModalVisible(true);
+  };
+
+  const handleConfirmQuantity = () => {
+    if (selectedIngredientForQuantity && quantityInput) {
+      const gramsAmount = parseFloat(quantityInput);
+      if (!isNaN(gramsAmount) && gramsAmount > 0) {
+        // Calculate the quantity as a multiplier of the serving size
+        // For example, if serving size is 100g and user wants 126g, quantity should be 1.26
+        const servingSizeNum = parseFloat(selectedIngredientForQuantity.servingSize);
+        const quantity = servingSizeNum > 0 ? gramsAmount / servingSizeNum : 1;
+
+        const existing = selectedIngredients.find((i: any) => i.id === selectedIngredientForQuantity.id);
+        if (existing) {
+          setSelectedIngredients(
+            selectedIngredients.map((i: any) =>
+              i.id === selectedIngredientForQuantity.id ? { ...i, quantity: i.quantity + quantity } : i
+            )
+          );
+        } else {
+          setSelectedIngredients([...selectedIngredients, { ...selectedIngredientForQuantity, quantity }]);
+        }
+      }
+      setQuantityModalVisible(false);
+      setSelectedIngredientForQuantity(null);
+      setQuantityInput("");
     }
   };
 
@@ -203,23 +225,27 @@ export default function MealBuilderModal({
                   scrollEnabled={false}
                   data={selectedIngredients}
                   keyExtractor={(item: any) => item.id}
-                  renderItem={({ item }: { item: any }) => (
-                    <View style={styles.ingredientItem}>
-                      <View>
-                        <Text style={styles.ingredientName}>
-                          {item.name} x{item.quantity}
-                        </Text>
-                        <Text style={styles.ingredientServing}>
-                          {item.quantity} {item.servingSize}
-                        </Text>
+                  renderItem={({ item }: { item: any }) => {
+                    const servingSizeNum = parseFloat(item.servingSize);
+                    const totalGrams = Math.round(item.quantity * servingSizeNum);
+                    return (
+                      <View style={styles.ingredientItem}>
+                        <View>
+                          <Text style={styles.ingredientName}>
+                            {item.name}
+                          </Text>
+                          <Text style={styles.ingredientServing}>
+                            {totalGrams}g
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => handleRemoveIngredient(item.id)}
+                        >
+                          <Text style={styles.removeBtn}>Remove</Text>
+                        </TouchableOpacity>
                       </View>
-                      <TouchableOpacity
-                        onPress={() => handleRemoveIngredient(item.id)}
-                      >
-                        <Text style={styles.removeBtn}>Remove</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                    );
+                  }}
                 />
               </Glass>
             )}
@@ -348,6 +374,44 @@ export default function MealBuilderModal({
           </ScrollView>
         </View>
       </View>
+
+      {/* Quantity Input Modal */}
+      <Modal visible={quantityModalVisible} transparent animationType="fade">
+        <View style={styles.quantityOverlay}>
+          <View style={styles.quantityContainer}>
+            <Text style={styles.quantityTitle}>
+              How many grams of {selectedIngredientForQuantity?.name}?
+            </Text>
+            <TextInput
+              style={styles.quantityInput}
+              placeholder="e.g., 126"
+              placeholderTextColor="#999"
+              keyboardType="decimal-pad"
+              value={quantityInput}
+              onChangeText={setQuantityInput}
+              autoFocus
+            />
+            <View style={styles.quantityButtonContainer}>
+              <TouchableOpacity
+                style={[styles.quantityButton, styles.cancelButton]}
+                onPress={() => {
+                  setQuantityModalVisible(false);
+                  setSelectedIngredientForQuantity(null);
+                  setQuantityInput("");
+                }}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.quantityButton, styles.saveButton]}
+                onPress={handleConfirmQuantity}
+              >
+                <Text style={styles.buttonText}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   );
 }
@@ -506,5 +570,49 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  quantityOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  quantityContainer: {
+    backgroundColor: "#1a1a2e",
+    borderRadius: 20,
+    padding: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  quantityTitle: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  quantityInput: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    color: "white",
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+    fontSize: 16,
+    width: "100%",
+    textAlign: "center",
+  },
+  quantityButtonContainer: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  quantityButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
   },
 });

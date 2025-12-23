@@ -36,7 +36,7 @@ export function NutritionProvider({ children }) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [macrosData, calorieData, goalsData, calorieGoalData, userInfoData, hydrationData, hydrationGoalData] = await Promise.all([
+        const [macrosData, calorieData, goalsData, calorieGoalData, userInfoData, hydrationData, hydrationGoalData, lastHydrationDateData] = await Promise.all([
           AsyncStorage.getItem("macros"),
           AsyncStorage.getItem("calories"),
           AsyncStorage.getItem("macroGoals"),
@@ -44,6 +44,7 @@ export function NutritionProvider({ children }) {
           AsyncStorage.getItem("userInfo"),
           AsyncStorage.getItem("hydration"),
           AsyncStorage.getItem("hydrationGoal"),
+          AsyncStorage.getItem("lastHydrationDate"),
         ]);
 
         if (macrosData) setMacros(JSON.parse(macrosData));
@@ -51,8 +52,20 @@ export function NutritionProvider({ children }) {
         if (goalsData) setMacroGoals(JSON.parse(goalsData));
         if (calorieGoalData) setCalorieGoal(JSON.parse(calorieGoalData));
         if (userInfoData) setUserInfo(JSON.parse(userInfoData));
-        if (hydrationData) setHydration(JSON.parse(hydrationData));
         if (hydrationGoalData) setHydrationGoal(JSON.parse(hydrationGoalData));
+
+        // Handle hydration with daily reset
+        const today = new Date().toDateString();
+        const lastHydrationDate = lastHydrationDateData ? JSON.parse(lastHydrationDateData) : null;
+
+        if (lastHydrationDate !== today) {
+          // New day, reset hydration
+          setHydration(0);
+          await AsyncStorage.setItem("lastHydrationDate", JSON.stringify(today));
+        } else if (hydrationData) {
+          // Same day, load existing hydration
+          setHydration(JSON.parse(hydrationData));
+        }
       } catch (error) {
         console.error("Error loading nutrition data:", error);
       }

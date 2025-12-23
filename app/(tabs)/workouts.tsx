@@ -15,13 +15,17 @@ import { useRouter } from "expo-router";
 
 export default function Workouts() {
   const router = useRouter();
-  const { getTodayWorkout, getTomorrowWorkout, activeSplit } = useWorkout();
+  const { getTodayWorkout, getTomorrowWorkout, activeSplit, streak, checkAndUpdateStreak } = useWorkout();
   const { wallpaper } = useWallpaper();
   const [, setRefresh] = useState(0);
+  const [completedExercises, setCompletedExercises] = useState([]);
+  const [appliedOverloads, setAppliedOverloads] = useState<string[]>([]);
 
   // Refresh the page when the tab comes into focus
   useFocusEffect(
     React.useCallback(() => {
+      setCompletedExercises([]);
+      setAppliedOverloads([]);
       setRefresh(prev => prev + 1);
     }, [])
   );
@@ -29,8 +33,33 @@ export default function Workouts() {
   const today = getTodayWorkout();
   const tomorrow = getTomorrowWorkout();
 
-  const [completedExercises, setCompletedExercises] = useState([]);
-  const [appliedOverloads, setAppliedOverloads] = useState<string[]>([]);
+  const day = today?.day;
+  const dayIndex = today?.index;
+
+  const remainingExercises =
+    day?.exercises?.filter((_, i) => !completedExercises.includes(i)) || [];
+
+  const dayComplete =
+    !day?.rest &&
+    remainingExercises.length === 0 &&
+    day?.exercises?.length > 0;
+
+  const handleWorkoutComplete = async () => {
+    await checkAndUpdateStreak();
+  };
+
+  // Call handleWorkoutComplete when dayComplete changes to true
+  useEffect(() => {
+    if (dayComplete) {
+      handleWorkoutComplete();
+    }
+  }, [dayComplete]);
+
+  // Reset completed exercises when the active split changes
+  useEffect(() => {
+    setCompletedExercises([]);
+    setAppliedOverloads([]);
+  }, [activeSplit]);
 
   if (!activeSplit) {
     return (
@@ -65,9 +94,6 @@ export default function Workouts() {
     );
   }
 
-  const day = today?.day;
-  const dayIndex = today?.index;
-
   const finishExercise = (exerciseIndex) => {
     const updated = [...completedExercises, exerciseIndex];
     setCompletedExercises(updated);
@@ -80,14 +106,6 @@ export default function Workouts() {
     setAppliedOverloads([...appliedOverloads, exercise.name]);
   };
 
-  const remainingExercises =
-    day?.exercises?.filter((_, i) => !completedExercises.includes(i)) || [];
-
-  const dayComplete =
-    !day?.rest &&
-    remainingExercises.length === 0 &&
-    day?.exercises?.length > 0;
-
   return (
     <ImageBackground
       source={wallpaper}
@@ -99,21 +117,40 @@ export default function Workouts() {
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
             Workouts
           </Text>
-          <TouchableOpacity
-            onPress={() => router.push("/split-manager")}
-            style={{
-              backgroundColor: "rgba(255,255,255,0.2)",
-              paddingVertical: 10,
-              paddingHorizontal: 14,
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.4)",
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
-              ⚙️ Splits
-            </Text>
-          </TouchableOpacity>
+          <View style={{ gap: 10 }}>
+            {streak > 0 && (
+              <View
+                style={{
+                  backgroundColor: "rgba(255, 215, 0, 0.3)",
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 215, 0, 0.6)",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#ffd700", fontSize: 12, fontWeight: "600" }}>
+                  🔥 {streak} day streak
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity
+              onPress={() => router.push("/split-manager")}
+              style={{
+                backgroundColor: "rgba(255,255,255,0.2)",
+                paddingVertical: 10,
+                paddingHorizontal: 14,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.4)",
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+                ⚙️ Splits
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Glass style={{ padding: 20, borderRadius: 25 }}>

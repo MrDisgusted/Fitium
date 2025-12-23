@@ -27,7 +27,10 @@ export default function SplitManager() {
         },
         {
           text: "Delete",
-          onPress: () => deleteSplit(id),
+          onPress: async () => {
+            await deleteSplit(id);
+            router.back();
+          },
           style: "destructive",
         },
       ]

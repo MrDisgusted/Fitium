@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ImageBackground } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
 import { useRouter, useLocalSearchParams, router } from "expo-router";
@@ -44,9 +44,8 @@ export default function Exercises() {
   };
 
   return (
-    <ImageBackground source={require("../../assets/wallpaper.png")} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>Exercises</Text>
 
           {workouts.map((d, i) => (
@@ -163,7 +162,6 @@ export default function Exercises() {
             <Text style={{ color: "black", fontSize: 18, fontWeight: "700" }}>Next</Text>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
-    </ImageBackground>
+    </SafeAreaView>
   );
 }

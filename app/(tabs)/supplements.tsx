@@ -1,14 +1,16 @@
 import React, { useState } from "react";
+import { View, Text, TouchableOpacity, FlatList, ImageBackground } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, TouchableOpacity, ImageBackground, FlatList } from "react-native";
 import Glass from "../../components/Glass";
 import SupplementItem from "../../components/SupplementItem";
 import AddSupplementModal from "../../components/AddSupplementModal";
 import SupplementProgress from "../../components/SupplementProgress";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
 
 export default function Supplements() {
   const [supplements, setSupplements] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const { wallpaper } = useWallpaper();
 
   const addSupplement = (s) => {
     setSupplements([...supplements, { ...s, takenToday: 0 }]);
@@ -27,12 +29,12 @@ export default function Supplements() {
 
   return (
     <ImageBackground
-      source={require("../../assets/wallpaper.png")}
-      resizeMode="cover"
+      source={wallpaper}
       style={{ flex: 1 }}
+      resizeMode="cover"
     >
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1, padding: 20, gap: 20 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+        <View style={{ flex: 1, padding: 20, gap: 20, backgroundColor: 'transparent' }}>
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
             Supplements
           </Text>

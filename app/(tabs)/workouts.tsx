@@ -1,33 +1,72 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
   ScrollView,
+  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import Glass from "../../components/Glass";
 import { useWorkout } from "../../components/provider/WorkoutProvider";
+import { useWallpaper } from "../../components/provider/WallpaperProvider";
 import { useRouter } from "expo-router";
 
 export default function Workouts() {
   const router = useRouter();
-  const { getTodayWorkout, getTomorrowWorkout, activeSplit } = useWorkout();
+  const { getTodayWorkout, getTomorrowWorkout, activeSplit, streak, checkAndUpdateStreak } = useWorkout();
+  const { wallpaper } = useWallpaper();
+  const [, setRefresh] = useState(0);
+  const [completedExercises, setCompletedExercises] = useState([]);
+  const [appliedOverloads, setAppliedOverloads] = useState<string[]>([]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setCompletedExercises([]);
+      setAppliedOverloads([]);
+      setRefresh(prev => prev + 1);
+    }, [])
+  );
 
   const today = getTodayWorkout();
   const tomorrow = getTomorrowWorkout();
 
-  const [completedExercises, setCompletedExercises] = useState([]);
+  const day = today?.day;
+  const dayIndex = today?.index;
+
+  const remainingExercises =
+    day?.exercises?.filter((_, i) => !completedExercises.includes(i)) || [];
+
+  const dayComplete =
+    !day?.rest &&
+    remainingExercises.length === 0 &&
+    day?.exercises?.length > 0;
+
+  const handleWorkoutComplete = async () => {
+    await checkAndUpdateStreak();
+  };
+
+  useEffect(() => {
+    if (dayComplete) {
+      handleWorkoutComplete();
+    }
+  }, [dayComplete]);
+
+  useEffect(() => {
+    setCompletedExercises([]);
+    setAppliedOverloads([]);
+  }, [activeSplit]);
 
   if (!activeSplit) {
     return (
       <ImageBackground
-        source={require("../../assets/wallpaper.png")}
+        source={wallpaper}
         style={{ flex: 1 }}
         resizeMode="cover"
       >
-        <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+          <View style={{ flex: 1, padding: 20, gap: 20 }}>
           <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
             No Workout Split
           </Text>
@@ -46,27 +85,11 @@ export default function Workouts() {
               Create Workout Split
             </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => router.push("/workout-planner")}
-            style={{
-              backgroundColor: "rgba(255,255,255,0.2)",
-              paddingVertical: 14,
-              borderRadius: 14,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 16, fontWeight: "700" }}>
-              Workout Planner
-            </Text>
-          </TouchableOpacity>
-        </SafeAreaView>
+        </View>
+      </SafeAreaView>
       </ImageBackground>
     );
   }
-
-  const day = today?.day;
-  const dayIndex = today?.index;
 
   const finishExercise = (exerciseIndex) => {
     const updated = [...completedExercises, exerciseIndex];
@@ -75,26 +98,55 @@ export default function Workouts() {
 
   const applyOverload = (exercise) => {
     exercise.weight = Number(exercise.weight) + Number(exercise.increase || 0);
+    setAppliedOverloads([...appliedOverloads, exercise.name]);
   };
-
-  const remainingExercises =
-    day?.exercises?.filter((_, i) => !completedExercises.includes(i)) || [];
-
-  const dayComplete =
-    !day?.rest &&
-    remainingExercises.length === 0 &&
-    day?.exercises?.length > 0;
 
   return (
     <ImageBackground
-      source={require("../../assets/wallpaper.png")}
+      source={wallpaper}
       style={{ flex: 1 }}
       resizeMode="cover"
     >
-      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20 }}>
-        <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
-          Workouts
-        </Text>
+      <SafeAreaView style={{ flex: 1, padding: 20, gap: 20, backgroundColor: 'transparent' }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>
+            Workouts
+          </Text>
+          <View style={{ gap: 10 }}>
+            {streak > 0 && (
+              <View
+                style={{
+                  backgroundColor: "rgba(255, 215, 0, 0.3)",
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 215, 0, 0.6)",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#ffd700", fontSize: 12, fontWeight: "600" }}>
+                  🔥 {streak} day streak
+                </Text>
+              </View>
+            )}
+            <TouchableOpacity
+              onPress={() => router.push("/split-manager")}
+              style={{
+                backgroundColor: "rgba(255,255,255,0.2)",
+                paddingVertical: 10,
+                paddingHorizontal: 14,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.4)",
+              }}
+            >
+              <Text style={{ color: "white", fontSize: 14, fontWeight: "600" }}>
+                ⚙️ Splits
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <Glass style={{ padding: 20, borderRadius: 25 }}>
           <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 16 }}>
@@ -187,23 +239,25 @@ export default function Workouts() {
                 >
                   <TouchableOpacity
                     onPress={() => applyOverload(ex)}
+                    disabled={appliedOverloads.includes(ex.name)}
                     style={{
                       flex: 1,
                       paddingVertical: 10,
                       borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: "rgba(255,255,255,0.6)",
+                      borderColor: appliedOverloads.includes(ex.name) ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
                       alignItems: "center",
+                      backgroundColor: appliedOverloads.includes(ex.name) ? "rgba(255,255,255,0.05)" : "transparent",
                     }}
                   >
                     <Text
                       style={{
-                        color: "white",
+                        color: appliedOverloads.includes(ex.name) ? "rgba(255,255,255,0.4)" : "white",
                         fontSize: 15,
                         fontWeight: "600",
                       }}
                     >
-                      +{ex.increase || 0}kg Overload
+                      {appliedOverloads.includes(ex.name) ? "Overload Applied" : `+${ex.increase || 0}kg Overload`}
                     </Text>
                   </TouchableOpacity>
 

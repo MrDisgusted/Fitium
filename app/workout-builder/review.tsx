@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ImageBackground, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Glass from "../../components/Glass";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -23,8 +23,8 @@ export default function Review() {
   };
 
   return (
-    <ImageBackground source={require("../../assets/wallpaper.png")} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1, padding: 20 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'transparent' }}>
+      <View style={{ flex: 1, padding: 20 }}>
         <Text style={{ color: "white", fontSize: 32, fontWeight: "bold" }}>Review</Text>
 
         <ScrollView contentContainerStyle={{ gap: 14, marginTop: 20 }}>
@@ -61,7 +61,7 @@ export default function Review() {
             Save Split
           </Text>
         </TouchableOpacity>
-      </SafeAreaView>
-    </ImageBackground>
+      </View>
+    </SafeAreaView>
   );
 }

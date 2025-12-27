@@ -6,8 +6,10 @@ import Calendar from "../../components/Calendar";
 import MacroBar from "../../components/MacroBar";
 import HydrationBar from "../../components/HydrationBar";
 import DailyCalories from "../../components/DailyCalories";
+import CalorieBank from "../../components/CalorieBank";
 import { useNutrition } from "../../components/provider/NutritionProvider";
 import { usePro } from "../../components/provider/ProProvider";
+import { useCalorieBank } from "../../components/provider/CalorieBankProvider";
 import { useWallpaper } from "../../components/provider/WallpaperProvider";
 import ProBenefitsModal from "../../components/ProBenefitsModal";
 import SubscriptionModal from "../../components/SubscriptionModal";
@@ -15,7 +17,8 @@ import { useState } from "react";
 
 export default function Index() {
   const { macros, setMacros, calories, macroGoals, hydration, hydrationGoal } = useNutrition();
-  const { isPro, setPro } = usePro();
+  const { isPro, setPro, isCalorieBankEnabled } = usePro();
+  const { calorieBank, currentWeight, weightGoal } = useCalorieBank();
   const { wallpaper } = useWallpaper();
   const [showBenefits, setShowBenefits] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
@@ -112,7 +115,11 @@ export default function Index() {
           </Glass>
 
           <Glass style={{ padding: 7, borderRadius: 30 }}>
-            <DailyCalories calories={calories} />
+            {isCalorieBankEnabled ? (
+              <CalorieBank calorieBank={calorieBank} weightGoal={weightGoal} currentWeight={currentWeight} />
+            ) : (
+              <DailyCalories calories={calories} />
+            )}
           </Glass>
 
           <Glass style={{ padding: 7, borderRadius: 30 }}>

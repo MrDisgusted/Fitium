@@ -17,7 +17,7 @@ const tabIcons = {
 };
 
 export default function TabsLayout() {
-  const [currentTab, setCurrentTab] = useState(2); // Start at index (position 2)
+  const [currentTab, setCurrentTab] = useState(2);
   const { wallpaper } = useWallpaper();
 
   return (

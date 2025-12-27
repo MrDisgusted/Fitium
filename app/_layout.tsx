@@ -4,6 +4,7 @@ import { WorkoutProvider } from "../components/provider/WorkoutProvider";
 import { WallpaperProvider, useWallpaper } from "../components/provider/WallpaperProvider";
 import { MealProvider } from "../components/provider/MealProvider";
 import { ProProvider } from "../components/provider/ProProvider";
+import { CalorieBankProvider } from "../components/provider/CalorieBankProvider";
 import { ImageBackground } from "react-native";
 import "./global.css";
 
@@ -19,7 +20,7 @@ function RootLayoutContent() {
       <Stack
         screenOptions={{
           headerShown: false,
-          sceneContainerStyle: { backgroundColor: 'transparent' },
+          contentStyle: { backgroundColor: 'transparent' },
         }}
       >
         <Stack.Screen name="(tabs)" />
@@ -35,13 +36,15 @@ export default function RootLayout() {
   return (
     <ProProvider>
       <WallpaperProvider>
-        <NutritionProvider>
-          <WorkoutProvider>
-            <MealProvider>
-              <RootLayoutContent />
-            </MealProvider>
-          </WorkoutProvider>
-        </NutritionProvider>
+        <CalorieBankProvider>
+          <NutritionProvider>
+            <WorkoutProvider>
+              <MealProvider>
+                <RootLayoutContent />
+              </MealProvider>
+            </WorkoutProvider>
+          </NutritionProvider>
+        </CalorieBankProvider>
       </WallpaperProvider>
     </ProProvider>
   );

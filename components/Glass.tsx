@@ -13,7 +13,6 @@ export default function Glass({ children, style, className }: GlassProps) {
   return (
     <View style={[styles.container, style]} className={className}>
       <BlurView intensity={25} style={StyleSheet.absoluteFill} />
-      {/* Liquid glass gradient overlay */}
       <LinearGradient
         colors={["rgba(255,255,255,0.02)", "rgba(255,255,255,0.005)"]}
         start={{ x: 0, y: 0 }}

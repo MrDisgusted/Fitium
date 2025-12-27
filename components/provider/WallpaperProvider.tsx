@@ -7,7 +7,6 @@ export function WallpaperProvider({ children }) {
   const defaultWallpaper = require("../../assets/wallpaper.png");
   const [wallpaper, setWallpaperState] = useState<any>(defaultWallpaper);
 
-  // Load wallpaper from AsyncStorage on mount
   useEffect(() => {
     const loadWallpaper = async () => {
       try {
@@ -29,11 +28,9 @@ export function WallpaperProvider({ children }) {
   const setWallpaper = async (imageUri: string | null) => {
     try {
       if (imageUri) {
-        // Save the URI to AsyncStorage
         await AsyncStorage.setItem("wallpaperUri", imageUri);
         setWallpaperState({ uri: imageUri });
       } else {
-        // Reset to default
         await AsyncStorage.removeItem("wallpaperUri");
         setWallpaperState(defaultWallpaper);
       }

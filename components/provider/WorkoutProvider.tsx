@@ -107,7 +107,6 @@ export function WorkoutProvider({ children }) {
     const today = new Date().toISOString().slice(0, 10);
     
     if (!lastWorkoutDate) {
-      // First workout
       setLastWorkoutDate(today);
       setStreak(1);
       await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
@@ -122,20 +121,17 @@ export function WorkoutProvider({ children }) {
     );
 
     if (dayDiff === 1) {
-      // Consecutive day - increment streak
       const newStreak = streak + 1;
       setStreak(newStreak);
       setLastWorkoutDate(today);
       await AsyncStorage.setItem("streak", JSON.stringify(newStreak));
       await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
     } else if (dayDiff > 1) {
-      // Missed days - reset streak
       setStreak(1);
       setLastWorkoutDate(today);
       await AsyncStorage.setItem("streak", JSON.stringify(1));
       await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
     }
-    // If dayDiff === 0, it's the same day, don't update
   };
 
   const resetStreak = async () => {

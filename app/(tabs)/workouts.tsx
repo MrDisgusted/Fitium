@@ -21,7 +21,6 @@ export default function Workouts() {
   const [completedExercises, setCompletedExercises] = useState([]);
   const [appliedOverloads, setAppliedOverloads] = useState<string[]>([]);
 
-  // Refresh the page when the tab comes into focus
   useFocusEffect(
     React.useCallback(() => {
       setCompletedExercises([]);
@@ -48,14 +47,12 @@ export default function Workouts() {
     await checkAndUpdateStreak();
   };
 
-  // Call handleWorkoutComplete when dayComplete changes to true
   useEffect(() => {
     if (dayComplete) {
       handleWorkoutComplete();
     }
   }, [dayComplete]);
 
-  // Reset completed exercises when the active split changes
   useEffect(() => {
     setCompletedExercises([]);
     setAppliedOverloads([]);
@@ -100,9 +97,7 @@ export default function Workouts() {
   };
 
   const applyOverload = (exercise) => {
-    // Apply the overload to the exercise weight
     exercise.weight = Number(exercise.weight) + Number(exercise.increase || 0);
-    // Track that this exercise has had overload applied using its name as key
     setAppliedOverloads([...appliedOverloads, exercise.name]);
   };
 

@@ -24,10 +24,10 @@ export default function ActivityTrackerModal({
   onSaveActivity,
 }: ActivityTrackerModalProps) {
   const { userInfo } = useNutrition();
-  const [speed, setSpeed] = useState("5"); // km/h
-  const [incline, setIncline] = useState("0"); // percentage
+  const [speed, setSpeed] = useState("5"); 
+  const [incline, setIncline] = useState("0"); 
   const [isRunning, setIsRunning] = useState(false);
-  const [duration, setDuration] = useState(0); // seconds
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -44,11 +44,11 @@ export default function ActivityTrackerModal({
     const inclineNum = parseFloat(incline) || 0;
     const durationMinutes = duration / 60;
 
-    // Calculate BMR using Mifflin-St Jeor equation
+
     let bmr = 0;
-    const weight = userInfo?.weight || 70; // default 70kg
-    const height = userInfo?.height || 175; // default 175cm
-    const age = userInfo?.age || 30; // default 30 years
+    const weight = userInfo?.weight || 70;
+    const height = userInfo?.height || 175;
+    const age = userInfo?.age || 30;
     const gender = userInfo?.gender || "male";
 
     if (gender?.toLowerCase() === "male") {
@@ -57,19 +57,14 @@ export default function ActivityTrackerModal({
       bmr = 10 * weight + 6.25 * height - 5 * age - 161;
     }
 
-    // Activity multiplier based on speed (MET - Metabolic Equivalent of Task)
-    // Speed to MET conversion for treadmill:
-    // 3 km/h = 2.8 MET, 5 km/h = 3.5 MET, 8 km/h = 6 MET, 10 km/h = 8 MET
-    let met = 2.8; // baseline walking
+    let met = 2.8;
     if (speedNum >= 3 && speedNum < 5) met = 3.5;
-    else if (speedNum >= 5 && speedNum < 8) met = (3.5 + 6) / 2; // ~4.75
+    else if (speedNum >= 5 && speedNum < 8) met = (3.5 + 6) / 2;
     else if (speedNum >= 8 && speedNum < 10) met = 6;
     else if (speedNum >= 10) met = 8;
 
-    // Incline adds additional MET (approximately 0.2-0.3 per percent)
     met += inclineNum * 0.25;
 
-    // Calories burned per minute = (BMR / 1440) * MET * weight factor
     const caloriesPerMinute = (bmr / 1440) * met;
     return Math.round(caloriesPerMinute * durationMinutes);
   };
@@ -113,7 +108,6 @@ export default function ActivityTrackerModal({
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
               <Text style={styles.title}>Activity Tracker</Text>
 
-              {/* Settings Section */}
               <Glass style={styles.settingsSection}>
                 <View style={styles.settingRow}>
                   <Text style={styles.label}>Speed (km/h)</Text>
@@ -142,7 +136,6 @@ export default function ActivityTrackerModal({
                 </View>
               </Glass>
 
-              {/* Timer Section */}
               <Glass style={styles.timerSection}>
                 <Text style={styles.timerDisplay}>{formatTime(duration)}</Text>
 
@@ -170,7 +163,6 @@ export default function ActivityTrackerModal({
 
             </ScrollView>
 
-            {/* Action Buttons */}
             <View style={styles.actionButtons}>
               <TouchableOpacity
                 style={[styles.actionButton, styles.cancelButton]}

@@ -118,7 +118,6 @@ export default function BarcodeScannerModal({
           skipProcessing: true,
         });
 
-        // Send image to barcode detection API
         await detectBarcodeFromImage(photo.uri);
       } catch (error) {
         Alert.alert("Error", "Failed to take picture. Try again.");
@@ -129,7 +128,6 @@ export default function BarcodeScannerModal({
 
   const detectBarcodeFromImage = async (imageUri: string) => {
     try {
-      // Create form data with the image
       const formData = new FormData();
       formData.append("image", {
         uri: imageUri,
@@ -137,7 +135,6 @@ export default function BarcodeScannerModal({
         name: "barcode.jpg",
       } as any);
 
-      // Use free barcode detection API
       const response = await fetch("https://api.barcodepulse.com/scan", {
         method: "POST",
         body: formData,
@@ -146,7 +143,6 @@ export default function BarcodeScannerModal({
       const data = await response.json();
 
       if (data && data.code) {
-        // Found barcode, now look it up
         setBarcodeInput(data.code);
         setScanMode("input");
         await handleBarcodeSearch(data.code);

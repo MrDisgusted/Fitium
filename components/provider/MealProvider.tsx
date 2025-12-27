@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 import { Ingredient } from "../../constants/ingredients";
 
 export interface MealIngredient extends Ingredient {
-  quantity: number; // multiplier for the serving size
+  quantity: number;
 }
 
 export interface Meal {
@@ -14,7 +14,7 @@ export interface Meal {
   protein: number;
   carbs: number;
   fats: number;
-  isCustom: boolean; // true if user created it
+  isCustom: boolean;
 }
 
 interface MealContextType {

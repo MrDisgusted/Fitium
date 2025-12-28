@@ -43,15 +43,12 @@ export default function Workouts() {
     remainingExercises.length === 0 &&
     day?.exercises?.length > 0;
 
-  const handleWorkoutComplete = async () => {
-    await checkAndUpdateStreak();
-  };
-
   useEffect(() => {
     if (dayComplete) {
-      handleWorkoutComplete();
+      checkAndUpdateStreak();
+      setRefresh(prev => prev + 1);
     }
-  }, [dayComplete]);
+  }, [dayComplete, checkAndUpdateStreak]);
 
   useEffect(() => {
     setCompletedExercises([]);

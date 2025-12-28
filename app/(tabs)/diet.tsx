@@ -47,7 +47,7 @@ export default function Diet() {
 
   const saveEdit = (newVal: number) => {
     if (editField === "calories") {
-      setCalories(newVal);
+      setCalories(calories => calories + newVal);
     } else if (editField === "hydration") {
       setHydration(newVal);
     } else if (editField && editField in macros) {

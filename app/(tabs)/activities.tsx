@@ -82,7 +82,7 @@ export default function Activities() {
               </Glass>
 
               <Glass style={{ flex: 1, padding: 20, borderRadius: 20, height: 150 }}>
-                <Text style={{ color: "white", fontSize: 18 }}>Activity</Text>
+                <Text style={{ color: "white", fontSize: 18, marginBottom: 12 }}>Activity</Text>
 
                 <TouchableOpacity
                   onPress={() => setActivityTrackerVisible(true)}
@@ -90,11 +90,12 @@ export default function Activities() {
                     marginTop: "auto",
                     backgroundColor: "#60ffd0",
                     paddingVertical: 8,
-                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    borderRadius: 8,
                     alignItems: "center",
                   }}
                 >
-                  <Text style={{ fontWeight: "700", color: "black" }}>Start Activity</Text>
+                  <Text style={{ fontWeight: "600", color: "black", fontSize: 13 }}>Start Activity</Text>
                 </TouchableOpacity>
               </Glass>
             </View>

@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 20,
-    gap: 14,
+    gap: 20,
     maxHeight: "90%",
     backgroundColor: "rgba(20, 20, 40, 0.95)",
   },

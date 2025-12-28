@@ -49,6 +49,11 @@ export default function Profile() {
   const [occupationModalVisible, setOccupationModalVisible] = useState(false);
   const [weightGoalInput, setWeightGoalInput] = useState(String(weightGoal || ""));
 
+  // Update profile when userInfo from provider changes
+  useEffect(() => {
+    setProfile(userInfo);
+  }, [userInfo]);
+
   // Update weight goal input when weightGoal from provider changes
   useEffect(() => {
     if (weightGoal > 0) {
@@ -120,6 +125,7 @@ export default function Profile() {
       height: Number(profile.height) || 0,
       activity: Number(profile.activity) || 1.2,
     });
+    Alert.alert("Success", "Profile saved successfully!");
   };
 
   const estimatedGoalCalories =
@@ -236,13 +242,44 @@ export default function Profile() {
               value={String(profile.age ?? "")}
               onChangeText={(t) => setProfile({ ...profile, age: t })}
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Gender"
-              placeholderTextColor="#aaa"
-              value={profile.gender ?? ""}
-              onChangeText={(t) => setProfile({ ...profile, gender: t })}
-            />
+            
+            <Text style={{ color: "white", fontSize: 14, marginTop: 12, marginBottom: 8 }}>
+              Gender
+            </Text>
+            <View style={{ flexDirection: "row", gap: 10, marginBottom: 12 }}>
+              <TouchableOpacity
+                style={[
+                  styles.genderButton,
+                  profile.gender === "male" && styles.genderButtonActive,
+                ]}
+                onPress={() => setProfile({ ...profile, gender: "male" })}
+              >
+                <Text
+                  style={[
+                    styles.genderButtonText,
+                    profile.gender === "male" && styles.genderButtonTextActive,
+                  ]}
+                >
+                  Male
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.genderButton,
+                  profile.gender === "female" && styles.genderButtonActive,
+                ]}
+                onPress={() => setProfile({ ...profile, gender: "female" })}
+              >
+                <Text
+                  style={[
+                    styles.genderButtonText,
+                    profile.gender === "female" && styles.genderButtonTextActive,
+                  ]}
+                >
+                  Female
+                </Text>
+              </TouchableOpacity>
+            </View>
             <TextInput
               style={styles.input}
               placeholder="Weight (kg)"
@@ -296,10 +333,6 @@ export default function Profile() {
               placeholder="Allergies"
               placeholderTextColor="#aaa"
             />
-
-            <TouchableOpacity style={styles.saveButton} onPress={onSaveProfile}>
-              <Text style={styles.saveText}>Save Profile</Text>
-            </TouchableOpacity>
           </Glass>
 
           <Glass style={{ padding: 20, borderRadius: 25 }}>
@@ -536,6 +569,10 @@ export default function Profile() {
             </View>
           </Glass>
 
+          <TouchableOpacity style={styles.saveButton} onPress={onSaveProfile}>
+            <Text style={styles.saveText}>Save Profile</Text>
+          </TouchableOpacity>
+
           <EditNumberModal
             visible={!!editField}
             label={editField || ""}
@@ -667,6 +704,27 @@ const styles = StyleSheet.create({
   selectorButtonText: {
     color: "white",
     fontSize: 16,
+  },
+  genderButton: {
+    flex: 1,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+  },
+  genderButtonActive: {
+    backgroundColor: "rgba(96,255,208,0.3)",
+    borderColor: "#60ffd0",
+  },
+  genderButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  genderButtonTextActive: {
+    color: "#60ffd0",
   },
   saveButton: {
     marginTop: 12,

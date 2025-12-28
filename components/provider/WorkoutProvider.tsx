@@ -57,9 +57,13 @@ export function WorkoutProvider({ children }) {
       setActiveSplitId(null);
       setCurrentIndex(0);
       setLastDate("");
+      setLastWorkoutDate(null);
+      setStreak(0);
       await AsyncStorage.removeItem("activeSplitId");
       await AsyncStorage.removeItem("currentIndex");
       await AsyncStorage.removeItem("lastDate");
+      await AsyncStorage.removeItem("lastWorkoutDate");
+      await AsyncStorage.removeItem("streak");
     }
   };
 
@@ -106,7 +110,11 @@ export function WorkoutProvider({ children }) {
   const checkAndUpdateStreak = async () => {
     const today = new Date().toISOString().slice(0, 10);
     
-    if (!lastWorkoutDate) {
+    const storedLastWorkoutDate = await AsyncStorage.getItem("lastWorkoutDate");
+    const storedStreak = await AsyncStorage.getItem("streak");
+    const currentStreak = storedStreak ? JSON.parse(storedStreak) : 0;
+    
+    if (!storedLastWorkoutDate) {
       setLastWorkoutDate(today);
       setStreak(1);
       await AsyncStorage.setItem("lastWorkoutDate", JSON.stringify(today));
@@ -114,14 +122,19 @@ export function WorkoutProvider({ children }) {
       return;
     }
 
-    const lastDate = new Date(lastWorkoutDate);
+    const lastDate = new Date(storedLastWorkoutDate);
     const currentDate = new Date(today);
     const dayDiff = Math.floor(
       (currentDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    // Same day - don't update
+    if (dayDiff === 0) {
+      return;
+    }
+    
     if (dayDiff === 1) {
-      const newStreak = streak + 1;
+      const newStreak = currentStreak + 1;
       setStreak(newStreak);
       setLastWorkoutDate(today);
       await AsyncStorage.setItem("streak", JSON.stringify(newStreak));
